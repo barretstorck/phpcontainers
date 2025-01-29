@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# Get the modules that are requested for the dockerfile.
+# Sort them and remove duplicates.
+MODULES=$(echo "$@" | xargs -n1 | sort -u | xargs)
+
+# Get the script's directory. We use this to know where the dockerfile parts
+# are at.
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+
+# Read the header
+cat $SCRIPT_DIR/../head.dockerfile
+
+# Include each requested module
+for I in $MODULES
+do
+    echo -e "\n" # Add a newline
+    cat $SCRIPT_DIR/../modules/$I.dockerfile
+done
+
+# Read the footer
+echo -e "\n" # Add a newline
+cat $SCRIPT_DIR/../tail.dockerfile
