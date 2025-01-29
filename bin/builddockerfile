@@ -1,23 +1,49 @@
 #!/bin/bash
 
+BASE=$1
+IS_APK=false
+if [[ $BASE == *"alpine"* ]]
+then
+    IS_APK=true
+fi
+
+
 # Get the extensions that are requested for the dockerfile.
 # Sort them and remove duplicates.
-EXTENSIONS=$(echo "$@" | xargs -n1 | sort -u | xargs)
+EXTENSIONS=$(echo "${@:2}" | xargs -n1 | sort -u | xargs)
 
 # Get the script's directory. We use this to know where the dockerfile parts
 # are at.
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
-# Read the header
-cat $SCRIPT_DIR/../head.dockerfile
+# Echo the header
+cat << 'EOF'
+ARG PHP_TAG="cli"
+
+FROM php:${PHP_TAG}
+EOF
 
 # Include each requested extension
 for I in $EXTENSIONS
 do
-    echo -e "\n" # Add a newline
-    cat $SCRIPT_DIR/../extensions/$I.dockerfile
-done
+    # Add any APK specific commands
+    if [[ "$IS_APK" = true && -f $SCRIPT_DIR/../extensions/$I/apk.dockerfile ]]
+    then
+        echo -e "\n" # Add a newline
+        cat $SCRIPT_DIR/../extensions/$I/apk.dockerfile
+    fi
 
-# Read the footer
-echo -e "\n" # Add a newline
-cat $SCRIPT_DIR/../tail.dockerfile
+    # Add any APT specific commands
+    if [[ "$IS_APK" = false && -f $SCRIPT_DIR/../extensions/$I/apt.dockerfile ]]
+    then
+        echo -e "\n" # Add a newline
+        cat $SCRIPT_DIR/../extensions/$I/apt.dockerfile
+    fi
+    
+    # Add any remaining commands
+    if [[ -f $SCRIPT_DIR/../extensions/$I/both.dockerfile ]]
+    then
+        echo -e "\n" # Add a newline
+        cat $SCRIPT_DIR/../extensions/$I/both.dockerfile
+    fi
+done

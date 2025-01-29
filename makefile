@@ -10,14 +10,14 @@ TAG = $(shell echo ${PHP}-$$(echo ${EXTENSIONS} | tr '[:upper:]' '[:lower:]' | x
 
 # Build the Docker containers.
 build:
-	$(MKFILE_DIR)/bin/builddockerfile ${EXTENSIONS} | docker build \
+	$(MKFILE_DIR)/bin/builddockerfile ${PHP} ${EXTENSIONS} | docker build \
 		--build-arg='PHP_TAG=${PHP}' \
 		--tag ${REGISTRY}/${NAME}:${TAG} \
 		--file - \
 		$(MKFILE_DIR)
 
 build-no-cache:
-	$(MKFILE_DIR)/bin/builddockerfile ${EXTENSIONS} | docker build \
+	$(MKFILE_DIR)/bin/builddockerfile ${PHP} ${EXTENSIONS} | docker build \
 		--build-arg='PHP_TAG=${PHP}' \
 		--no-cache \
 		--tag ${REGISTRY}/${NAME}:${TAG} \
