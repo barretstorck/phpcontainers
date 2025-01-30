@@ -41,9 +41,9 @@ do
     fi
     
     # Add any remaining commands
-    if [[ -f $SCRIPT_DIR/../extensions/$I/both.dockerfile ]]
+    if [[ -f $SCRIPT_DIR/../extensions/$I/all.dockerfile ]]
     then
         echo -e "\n" # Add a newline
-        cat $SCRIPT_DIR/../extensions/$I/both.dockerfile
+        cat $SCRIPT_DIR/../extensions/$I/all.dockerfile
     fi
 done

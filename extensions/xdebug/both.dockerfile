@@ -1,7 +1,3 @@
-RUN pecl install xdebug \
-    && docker-php-ext-enable xdebug \
-    && docker-php-source delete
-
 # Add config file
 COPY extensions/xdebug/xdebug.ini /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
 
