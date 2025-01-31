@@ -26,6 +26,14 @@ EOF
 # Include each requested extension
 for I in $EXTENSIONS
 do
+    EXT_DIR="$SCRIPT_DIR/../extensions/$I"
+
+    if [[ ! -d "$EXT_DIR" ]]
+    then
+        echo "Unsupported extension $I" >&2
+        exit 1
+    fi
+    
     # Add any APK specific commands
     if [[ "$IS_APK" = true && -f $SCRIPT_DIR/../extensions/$I/apk.dockerfile ]]
     then
