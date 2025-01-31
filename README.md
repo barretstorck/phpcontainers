@@ -18,12 +18,12 @@ Tools for building PHP Docker containers with different versions and extentions 
 - [x] ldap
 - [x] mysqli
 - [x] odbc
-- [ ] opcache
-- [ ] pcntl
-- [ ] pdo_dblib
-- [ ] pdo_firebird
-- [ ] pdo_mysql
-- [ ] pdo_odbc
+- [x] opcache
+- [x] pcntl
+- [x] pdo_dblib
+- [/] pdo_firebird - APT/Debian only
+- [x] pdo_mysql
+- [x] pdo_odbc
 - [ ] pdo_pgsql
 - [ ] pgsql
 - [ ] shmop

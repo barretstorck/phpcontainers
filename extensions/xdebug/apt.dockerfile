@@ -1,3 +1,3 @@
 RUN pecl install xdebug \
-        && docker-php-ext-enable xdebug \
-        && docker-php-source delete
+    && docker-php-ext-enable xdebug \
+    && docker-php-source delete

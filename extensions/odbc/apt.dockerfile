@@ -1,6 +1,5 @@
 RUN apt-get update -q \
-    && apt-get install -y -q --no-install-recommends \
-            unixodbc-dev \
+    && apt-get install -y -q --no-install-recommends unixodbc-dev \
     && docker-php-source extract \
     && echo 'AC_DEFUN([PHP_ALWAYS_SHARED],[])dnl' > temp.m4 \
     && cat /usr/src/php/ext/odbc/config.m4 >> temp.m4 \

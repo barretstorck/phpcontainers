@@ -1,5 +1,4 @@
-RUN apk add --no-cache --virtual .build-deps \
-        unixodbc-dev \
+RUN apk add --no-cache --virtual .build-deps unixodbc-dev \
     && docker-php-source extract \
     && echo 'AC_DEFUN([PHP_ALWAYS_SHARED],[])dnl' > temp.m4 \
     && cat /usr/src/php/ext/odbc/config.m4 >> temp.m4 \

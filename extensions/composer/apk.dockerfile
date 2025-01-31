@@ -1,3 +1,1 @@
-RUN apk add --no-cache \
-    unzip \
-    zip
+RUN apk add --no-cache unzip zip

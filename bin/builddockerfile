@@ -1,10 +1,10 @@
 #!/bin/bash
 
 BASE=$1
-IS_APK=false
+IS_APK=
 if [[ $BASE == *"alpine"* ]]
 then
-    IS_APK=true
+    IS_APK=1
 fi
 
 
@@ -26,6 +26,7 @@ EOF
 # Include each requested extension
 for I in $EXTENSIONS
 do
+    FOUND_FILE=
     EXT_DIR="$SCRIPT_DIR/../extensions/$I"
 
     if [[ ! -d "$EXT_DIR" ]]
@@ -35,23 +36,32 @@ do
     fi
     
     # Add any APK specific commands
-    if [[ "$IS_APK" = true && -f $SCRIPT_DIR/../extensions/$I/apk.dockerfile ]]
+    if [[ -n "$IS_APK" && -f $EXT_DIR/apk.dockerfile ]]
     then
         echo -e "\n" # Add a newline
-        cat $SCRIPT_DIR/../extensions/$I/apk.dockerfile
+        cat $EXT_DIR/apk.dockerfile
+        FOUND_FILE=1
     fi
 
     # Add any APT specific commands
-    if [[ "$IS_APK" = false && -f $SCRIPT_DIR/../extensions/$I/apt.dockerfile ]]
+    if [[ -z "$IS_APK" && -f $EXT_DIR/apt.dockerfile ]]
     then
         echo -e "\n" # Add a newline
-        cat $SCRIPT_DIR/../extensions/$I/apt.dockerfile
+        cat $EXT_DIR/apt.dockerfile
+        FOUND_FILE=1
     fi
     
     # Add any remaining commands
-    if [[ -f $SCRIPT_DIR/../extensions/$I/all.dockerfile ]]
+    if [[ -f $EXT_DIR/all.dockerfile ]]
     then
         echo -e "\n" # Add a newline
-        cat $SCRIPT_DIR/../extensions/$I/all.dockerfile
+        cat $EXT_DIR/all.dockerfile
+        FOUND_FILE=1
+    fi
+
+    if [[ -z "$FOUND_FILE" ]]
+    then
+        echo "Unsupported extension $I" >&2
+        exit 1
     fi
 done

@@ -1,6 +1,5 @@
 RUN apt-get update -q \
-    && apt-get install -y -q --no-install-recommends \
-        libpng-dev \
+    && apt-get install -y -q --no-install-recommends libpng-dev \
     && docker-php-ext-install gd \
     && apt-get remove libpng-dev -y -q \
     && apt-get autoremove -y -q \

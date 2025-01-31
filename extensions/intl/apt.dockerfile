@@ -1,6 +1,5 @@
 RUN apt-get update -q \
-    && apt-get install -y -q --no-install-recommends \
-        libicu-dev \
+    && apt-get install -y -q --no-install-recommends libicu-dev \
     && docker-php-ext-install intl \
     && apt-get remove libicu-dev -y -q \
     && apt-get autoremove -y -q \
