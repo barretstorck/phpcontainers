@@ -1,0 +1,62 @@
+name: CI/CD Pipeline
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  pull_request:
+
+jobs:
+  build_php_containers:
+    if: contains(fromJSON('["refs/heads/main"]'), github.ref)
+    strategy:
+      matrix:
+        include:
+          - php: 8.4-cli
+            extensions: composer sockets xdebug
+          - php: 8.4-cli
+            extensions: composer xdebug
+    name: Build ${{ matrix.php }} with ${{ matrix.extensions }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate output tag
+        id: output_tag
+        run: |
+          export OUTPUT_TAG=$(echo "${{ matrix.php }}-${{ matrix.extensions }}" | tr '[:upper:]' '[:lower:]' | xargs -n1 | sort | xargs | tr ' ' '-') | cut -c -128 | sed 's/-$$//')
+          echo "output_tag=$OUTPUT_TAG" >> $GITHUB_OUTPUT
+          echo $OUTPUT_TAG
+      
+      - name: Build dockerfile
+        run: |
+          ./bin/builddockerfile ${{ matrix.php }} ${{ matrix.extensions }} > dockerfile
+          cat dockerfile
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push container
+        uses: docker/build-push-action@v5
+        with:
+          provenance: false
+          context: .
+          file: dockerfile
+          push: true
+          tags: ${{ steps.output_tag.outputs.output_tag }}
+          cache-from: type=registry,ref=${{ steps.output_tag.outputs.output_tag }}
+          cache-to: type=inline
+          platforms: linux/amd64
+          build-args: |
+            PHP_TAG=${{ matrix.php }}
