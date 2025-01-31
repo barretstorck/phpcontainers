@@ -30,7 +30,8 @@ jobs:
       - name: Generate output tag
         id: output_tag
         run: |
-          export OUTPUT_TAG=$(echo "${{ matrix.php }}-${{ matrix.extensions }}" | tr '[:upper:]' '[:lower:]' | xargs -n1 | sort | xargs | tr ' ' '-') | cut -c -128 | sed 's/-$$//')
+          export OUTPUT_TAG=$(echo "${{ matrix.php }}-${{ matrix.extensions }}" | tr '[:upper:]' '[:lower:]' | xargs -n1 | sort | xargs | tr ' ' '-')
+          export OUTPUT_TAG=$(echo "$OUTPUT_TAG" | cut -c -128 | sed 's/-$$//')
           echo "output_tag=$OUTPUT_TAG" >> $GITHUB_OUTPUT
           echo $OUTPUT_TAG
       
