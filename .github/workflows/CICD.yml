@@ -12,13 +12,15 @@ on:
 jobs:
   build_php_containers:
     if: contains(fromJSON('["refs/heads/main"]'), github.ref)
+    # Define what containers to build here
     strategy:
       matrix:
         include:
-          - php: 8.4-cli
+          - php: 8.4-cli-alpine
             extensions: composer sockets xdebug
-          - php: 8.4-cli
+          - php: 8.4-cli-alpine
             extensions: composer xdebug
+
     name: Build ${{ matrix.php }} with ${{ matrix.extensions }}
     runs-on: ubuntu-latest
     permissions:
