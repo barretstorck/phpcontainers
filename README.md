@@ -16,8 +16,8 @@ Tools for building PHP Docker containers with different versions and extentions 
 - [x] gmp
 - [x] intl
 - [x] ldap
-- [ ] mysqli
-- [ ] odbc
+- [x] mysqli
+- [x] odbc
 - [ ] opcache
 - [ ] pcntl
 - [ ] pdo_dblib
