@@ -24,18 +24,16 @@ Tools for building PHP Docker containers with different versions and extentions 
 - [/] pdo_firebird - APT/Debian only
 - [x] pdo_mysql
 - [x] pdo_odbc
-- [ ] pdo_pgsql
-- [ ] pgsql
-- [ ] shmop
-- [ ] snmp
-- [ ] soap
-- [ ] sockets
-- [ ] standard
-- [ ] sysvmsg
-- [ ] sysvsem
-- [ ] sysvshm
-- [ ] tidy
-- [ ] xsl
-- [ ] zend_test
-- [ ] zip
+- [x] pdo_pgsql
+- [x] pgsql
+- [x] shmop
+- [x] snmp
+- [x] soap
+- [x] sockets
+- [x] sysvmsg
+- [x] sysvsem
+- [x] sysvshm
+- [x] tidy
+- [x] xsl
+- [x] zip
 
