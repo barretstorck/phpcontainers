@@ -57,7 +57,7 @@ jobs:
           context: .
           file: dockerfile
           push: true
-          tags: ${{ steps.output_tag.outputs.output_tag }}
+          tags: ghcr.io/barretstorck/php:${{ steps.output_tag.outputs.output_tag }}
           platforms: linux/amd64
           build-args: |
             PHP_TAG=${{ matrix.php }}
