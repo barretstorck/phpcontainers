@@ -5,6 +5,7 @@ Tools for building PHP Docker containers with different versions and extentions 
 - [x] bcmath
 - [x] bz2
 - [x] calendar
+- [x] composer
 - [x] dba
 - [x] dl_test
 - [x] enchant
@@ -35,5 +36,7 @@ Tools for building PHP Docker containers with different versions and extentions 
 - [x] sysvshm
 - [x] tidy
 - [x] xsl
+- [x] xdebug
+- [x] yaml
 - [x] zip
 
