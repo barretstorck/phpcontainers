@@ -17,11 +17,7 @@ EXTENSIONS=$(echo "${@:2}" | xargs -n1 | sort -u | xargs)
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 # Echo the header
-cat << 'EOF'
-ARG PHP_TAG="cli"
-
-FROM php:${PHP_TAG}
-EOF
+echo -n "FROM php:$BASE"
 
 # Include each requested extension
 for I in $EXTENSIONS
@@ -38,7 +34,7 @@ do
     # Add any APK specific commands
     if [[ -n "$IS_APK" && -f $EXT_DIR/apk.dockerfile ]]
     then
-        echo -e "\n" # Add a newline
+        echo -e "\n\n# Setup $I" # Add description and newlines
         cat $EXT_DIR/apk.dockerfile
         FOUND_FILE=1
     fi
@@ -46,7 +42,7 @@ do
     # Add any APT specific commands
     if [[ -z "$IS_APK" && -f $EXT_DIR/apt.dockerfile ]]
     then
-        echo -e "\n" # Add a newline
+        echo -e "\n\n# Setup $I" # Add description and newlines
         cat $EXT_DIR/apt.dockerfile
         FOUND_FILE=1
     fi
@@ -54,7 +50,13 @@ do
     # Add any remaining commands
     if [[ -f $EXT_DIR/all.dockerfile ]]
     then
-        echo -e "\n" # Add a newline
+        if [[ -z "$FOUND_FILE" ]]
+        then
+            echo -e "\n\n# Setup $I" # Add description and newlines
+        else
+            echo -e "\n" # Add a newline
+        fi
+        
         cat $EXT_DIR/all.dockerfile
         FOUND_FILE=1
     fi
@@ -65,3 +67,5 @@ do
         exit 1
     fi
 done
+
+echo -e "\n"
