@@ -8,7 +8,6 @@ RUN apt-get update -q \
     && docker-php-ext-configure pdo_odbc --with-pdo-odbc=unixODBC,/usr \
     && docker-php-ext-install odbc pdo_odbc \
     && docker-php-source delete \
-    && apt-get remove unixodbc-dev -y -q \
     && apt-get autoremove -y -q \
     && apt-get clean -q \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*

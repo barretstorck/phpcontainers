@@ -13,6 +13,7 @@ containers with any combination of the supported extensions listed
 | [bz2](https://www.php.net/manual/en/book.bzip2.php) | ☑ | ☑ |  |
 | [calendar](https://www.php.net/manual/en/book.calendar.php) | ☑ | ☑ |  |
 | [composer](https://getcomposer.org/download/) | ☑ | ☑ | Adds Composer binary |
+| [db2](https://www.php.net/manual/en/book.ibm-db2.php) | ☑ | ☐ | Includes pdo_ibm |
 | [dba](https://www.php.net/manual/en/book.dba.php) | ☑ | ☑ |  |
 | [dblib](https://www.php.net/manual/en/ref.pdo-dblib.connection.php) | ☑ | ☑ |  |
 | dl_test | ☑ | ☑ |  |
@@ -33,6 +34,7 @@ containers with any combination of the supported extensions listed
 | [pcntl](https://www.php.net/manual/en/book.pcntl.php) | ☑ | ☑ |  |
 | [pcov](https://github.com/krakjoe/pcov) | ☑ | ☑ |  |
 | [pdo_dblib](https://www.php.net/manual/en/ref.pdo-dblib.connection.php) | ☑ | ☑ | Bundled in "dblib" |
+| [pdo_ibm](https://www.php.net/manual/en/ref.pdo-ibm.php) | ☑ | ☐ | Bundled in "db2" |
 | [pdo_firebird](https://www.php.net/manual/en/ref.pdo-firebird.php) | ☑ | ☐ |  |
 | [pdo_mysql](https://www.php.net/manual/en/ref.pdo-mysql.php) | ☑ | ☑ | Bundled in "mysqli" |
 | [pdo_odbc](https://www.php.net/manual/en/ref.pdo-odbc.php) | ☑ | ☑ | Bundled in "odbc" |
