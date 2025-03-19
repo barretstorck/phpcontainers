@@ -25,3 +25,6 @@ build-no-cache:
 
 clean:
 	docker image rm ${NAME}:${TAG} >/dev/null 2>&1 || true
+
+dockerfile:
+	$(MKFILE_DIR)/bin/builddockerfile ${PHP} ${EXTENSIONS}
