@@ -20,6 +20,8 @@ jobs:
             extensions: composer sockets xdebug
           - php: 8.4-cli-alpine
             extensions: composer xdebug
+          - php: 8.4-cli
+            extensions: composer db2 mysqli pgsql xdebug
 
     name: Build ${{ matrix.php }} with ${{ matrix.extensions }}
     runs-on: ubuntu-latest
