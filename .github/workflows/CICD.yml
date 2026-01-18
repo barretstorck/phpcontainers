@@ -53,31 +53,22 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-            - name: Build and push container
-              uses: docker/build-push-action@v5
-              with:
-                provenance: false
-                context: .
-                file: dockerfile
-                push: true
-                load: true
-                tags: ghcr.io/barretstorck/php:${{ steps.output_tag.outputs.output_tag }}
-                platforms: linux/amd64
-                build-args: |
-                  PHP_TAG=${{ matrix.php }}
+      - name: Build and push container
+        uses: docker/build-push-action@v5
+        with:
+          provenance: false
+          context: .
+          file: dockerfile
+          push: true
+          load: true
+          tags: ghcr.io/barretstorck/php:${{ steps.output_tag.outputs.output_tag }}
+          platforms: linux/amd64
+          build-args: |
+            PHP_TAG=${{ matrix.php }}
 
-                  - name: Verify extensions
-
-                    run: |
-
-                      IMAGE=ghcr.io/barretstorck/php:${{ steps.output_tag.outputs.output_tag }}
-
-                      for ext in ${{ matrix.extensions }}; do
-
-                        ./bin/verify-extension $IMAGE $ext
-
-                      done
-
-            
-
-      
+      - name: Verify extensions
+        run: |
+          IMAGE=ghcr.io/barretstorck/php:${{ steps.output_tag.outputs.output_tag }}
+          for ext in ${{ matrix.extensions }}; do
+            ./bin/verify-extension $IMAGE $ext
+          done
