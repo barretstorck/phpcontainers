@@ -1,0 +1,8 @@
+#!/bin/bash
+
+PHP=$1
+EXTENSIONS=$(echo "${@:2}" | tr '[:upper:]' '[:lower:]' | xargs -n1 | sort | xargs | tr ' ' '-')
+
+TAG="${PHP}-${EXTENSIONS}"
+# Truncate to 128 chars and remove trailing dash
+echo "$TAG" | cut -c -128 | sed 's/-$//'

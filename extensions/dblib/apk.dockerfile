@@ -1,2 +1,4 @@
-RUN apk add --no-cache freetds-dev \
-    && docker-php-ext-install pdo_dblib
+RUN apk add --no-cache --virtual .build-deps freetds-dev \
+    && apk add --no-cache freetds \
+    && docker-php-ext-install dblib \
+    && apk del .build-deps

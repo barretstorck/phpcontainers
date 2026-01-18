@@ -1,5 +1,12 @@
 #!/bin/bash
 
+if [[ -z "$1" || "$1" == "--help" || "$1" == "-h" ]]
+then
+    echo "Usage: $0 <php-base-tag> [extension1 extension2 ...]"
+    echo "Example: $0 8.4-fpm bcmath zip"
+    exit 0
+fi
+
 BASE=$1
 IS_APK=
 if [[ $BASE == *"alpine"* ]]
@@ -17,7 +24,7 @@ EXTENSIONS=$(echo "${@:2}" | xargs -n1 | sort -u | xargs)
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 # Echo the header
-echo -n "FROM php:$BASE"
+echo "FROM php:$BASE"
 
 # Include each requested extension
 for I in $EXTENSIONS

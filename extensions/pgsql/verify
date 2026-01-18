@@ -1,0 +1,4 @@
+#!/bin/bash
+IMAGE=$1
+docker run --rm "$IMAGE" php -m | grep -i "pgsql"
+docker run --rm "$IMAGE" php -m | grep -i "pdo_pgsql"

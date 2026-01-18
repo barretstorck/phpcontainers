@@ -1,0 +1,4 @@
+#!/bin/bash
+IMAGE=$1
+docker run --rm "$IMAGE" php -m | grep -i "ibm_db2"
+docker run --rm "$IMAGE" php -m | grep -i "pdo_ibm"

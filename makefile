@@ -3,7 +3,7 @@ MKFILE_DIR = $(shell echo $(dir $(abspath $(firstword $(MAKEFILE_LIST)))) | sed 
 PHP=8.4-cli
 EXTENSIONS=
 NAME=php
-TAG = $(shell echo ${PHP}-$$(echo ${EXTENSIONS} | tr '[:upper:]' '[:lower:]' | xargs -n1 | sort | xargs | tr ' ' '-') | cut -c -128 | sed 's/-$$//')
+TAG = $(shell $(MKFILE_DIR)/bin/generate-tag ${PHP} ${EXTENSIONS})
 
 .PHONY: *
 

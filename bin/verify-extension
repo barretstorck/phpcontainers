@@ -1,0 +1,16 @@
+#!/bin/bash
+set -e
+
+IMAGE=$1
+EXTENSION=$2
+
+echo "Verifying $EXTENSION..."
+
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+EXT_VERIFY_SCRIPT="$SCRIPT_DIR/../extensions/$EXTENSION/verify"
+
+if [[ -f "$EXT_VERIFY_SCRIPT" ]]; then
+    "$EXT_VERIFY_SCRIPT" "$IMAGE"
+else
+    docker run --rm "$IMAGE" php -m | grep -i "$EXTENSION"
+fi

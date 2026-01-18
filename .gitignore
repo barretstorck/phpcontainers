@@ -1,1 +1,19 @@
+# Generated dockerfiles
 dockerfile
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Temp files
+tmp/
+.tmp/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo

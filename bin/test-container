@@ -1,0 +1,104 @@
+#!/bin/bash
+set -e
+
+# Help message
+if [[ -z "$1" || "$1" == "--help" || "$1" == "-h" ]]; then
+    echo "Usage: $0 <php-base-tag> [extension1 extension2 ...]"
+    echo "  If no extensions are provided, attempts to test ALL supported extensions."
+    echo "Example: $0 8.4-fpm"
+    echo "Example: $0 8.4-cli-alpine bcmath zip"
+    exit 0
+fi
+
+BASE_TAG=$1
+SHIFTED_ARGS="${@:2}"
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+ROOT_DIR="$SCRIPT_DIR/.."
+IS_ALPINE=0
+
+if [[ "$BASE_TAG" == *"alpine"* ]]; then
+    IS_ALPINE=1
+fi
+
+# Determine extensions to test
+if [[ -z "$SHIFTED_ARGS" ]]; then
+    echo "No extensions specified. Detecting all supported extensions..."
+    ALL_EXTS=$(find "$ROOT_DIR/extensions" -mindepth 1 -maxdepth 1 -type d -exec basename {} \; | sort)
+    
+    EXTENSIONS=""
+    for ext in $ALL_EXTS; do
+        EXT_PATH="$ROOT_DIR/extensions/$ext"
+        
+        # Check compatibility
+        if [[ $IS_ALPINE -eq 1 ]]; then
+            # For Alpine, we need apk.dockerfile OR all.dockerfile
+            if [[ -f "$EXT_PATH/apk.dockerfile" || -f "$EXT_PATH/all.dockerfile" ]]; then
+                EXTENSIONS="$EXTENSIONS $ext"
+            else
+                echo "Skipping $ext (not supported on Alpine)"
+            fi
+        else
+            # For Debian, we need apt.dockerfile OR all.dockerfile
+            if [[ -f "$EXT_PATH/apt.dockerfile" || -f "$EXT_PATH/all.dockerfile" ]]; then
+                EXTENSIONS="$EXTENSIONS $ext"
+            else
+                echo "Skipping $ext (not supported on Debian)"
+            fi
+        fi
+    done
+else
+    EXTENSIONS=$(echo "$SHIFTED_ARGS" | xargs -n1 | sort -u | xargs)
+fi
+
+echo "Testing with extensions: $EXTENSIONS"
+
+# Generate Image Tag
+TAG_SUFFIX=$(echo "$EXTENSIONS" | tr ' ' '-')
+# Use the generate-tag script logic (or call it if strictly preferred, but inline is faster here for a test script)
+FULL_TAG="${BASE_TAG}-${TAG_SUFFIX}"
+# Truncate to 128 chars to match build behavior
+FULL_TAG=$(echo "$FULL_TAG" | cut -c -128 | sed 's/-$//')
+IMAGE_NAME="php-test:$FULL_TAG"
+
+# Check if image exists locally
+if [[ "$(docker images -q "$IMAGE_NAME" 2> /dev/null)" == "" ]]; then
+    echo "Image $IMAGE_NAME not found. Building..."
+    
+    # Create a temporary directory for the build context
+    BUILD_DIR=$(mktemp -d)
+    
+    # Generate Dockerfile
+    "$SCRIPT_DIR/builddockerfile" "$BASE_TAG" $EXTENSIONS > "$BUILD_DIR/Dockerfile"
+    
+    # Build
+    echo "Building Docker image..."
+    docker build -t "$IMAGE_NAME" \
+        --build-arg=\"PHP_TAG=$BASE_TAG\" \
+        -f "$BUILD_DIR/Dockerfile" \
+        "$ROOT_DIR"
+        
+    rm -rf "$BUILD_DIR"
+    echo "Build successful."
+else
+    echo "Image $IMAGE_NAME found locally. Skipping build."
+fi
+
+# Verify Extensions
+echo "Verifying extensions..."
+FAILURES=0
+for ext in $EXTENSIONS; do
+    if ! "$SCRIPT_DIR/verify-extension" "$IMAGE_NAME" "$ext"; then
+        echo "❌ Verification failed for $ext"
+        FAILURES=$((FAILURES+1))
+    else
+        echo "✅ Verified $ext"
+    fi
+done
+
+if [[ $FAILURES -eq 0 ]]; then
+    echo "🎉 All tests passed!"
+    exit 0
+else
+    echo "💥 $FAILURES tests failed."
+    exit 1
+fi
