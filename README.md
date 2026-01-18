@@ -1,7 +1,7 @@
 # PHP Containers
 This repository provides scripts made to streamline the process of building
 [PHP Docker containers](https://hub.docker.com/_/php) with various extensions.
-Once built, these containers serve as an ideal 
+Once built, these containers serve as an ideal base for your PHP applications.
 This empowers developers to create lightweight, efficient, and reproducible PHP
 containers with any combination of the supported extensions listed
 [below](#supported-extensions).
@@ -67,20 +67,20 @@ Run the "diagnose" command to get more detailed diagnostics output.
 ```
 
 # How it works
-Each extension is defined within its own directory, with one or more dockerfiles
+Each extension is defined within its own directory, with one or more Dockerfiles
 included. The `bin/builddockerfile` script accepts the tag name of the PHP
 Docker container to use as a base, and a list of extensions to include. From
-that the script fetches the appropriate dockerfile snippets from each
-extension's directory, and compiles a new dockerfile that the final image will
+that the script fetch appropriate Dockerfile snippets from each
+extension's directory, and compiles a new Dockerfile that the final image will
 be made from.
 
-To preview the dockerfile, you can run `./bin/builddockerfile <php base tag name> <list of extensions>`.
+To preview the Dockerfile, you can run `./bin/builddockerfile <php base tag name> <list of extensions>`.
 For example:
 ```shell
 ./bin/builddockerfile 8.4-fpm bcmath bz2 yaml zip
 ```
 will output:
-```dockerfile
+```Dockerfile
 FROM php:8.4-fpm
 
 # Setup bcmath
