@@ -1,3 +1,8 @@
 APT_DEPS="freetds-dev"
 APK_DEPS="freetds-dev freetds"
-PHP_EXT_INSTALL="dblib pdo_dblib"
+
+if [[ -n "$IS_APK" ]]; then
+    PHP_EXT_INSTALL="dblib"
+else
+    PHP_EXT_INSTALL="pdo_dblib"
+fi

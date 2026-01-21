@@ -66,7 +66,7 @@ do
         ALL_PHP_EXT_ENABLE="$ALL_PHP_EXT_ENABLE $PHP_EXT_ENABLE"
         
         if [[ -n "$DOCKERFILE_CONTENTS" ]]; then
-            ALL_CUSTOM_CONTENTS="$ALL_CUSTOM_CONTENTS\n\n# Custom setup for $I\n$DOCKERFILE_CONTENTS"
+            ALL_CUSTOM_CONTENTS="$ALL_CUSTOM_CONTENTS"$'\n\n'"# Custom setup for $I"$'\n'"$DOCKERFILE_CONTENTS"
         fi
     else
         # For migration: if config doesn't exist, we might want to warn or skip.
@@ -118,7 +118,7 @@ fi
 
 # 5. Custom Contents
 if [[ -n "$ALL_CUSTOM_CONTENTS" ]]; then
-    echo -e "$ALL_CUSTOM_CONTENTS"
+    echo "$ALL_CUSTOM_CONTENTS"
 fi
 
 echo ""

@@ -1,11 +1,11 @@
 if [[ -n "$IS_APK" ]]; then
-    DOCKERFILE_CONTENTS=$(cat <<EOT
+    read -r -d '' DOCKERFILE_CONTENTS <<'EOT'
 RUN echo 'http://dl-cdn.alpinelinux.org/alpine/v3.6/community' >> /etc/apk/repositories \
     && apk add --no-cache tidyhtml-dev tidyhtml-libs \
     && docker-php-ext-install tidy
 EOT
-    )
 else
     APT_DEPS="libtidy-dev"
     PHP_EXT_INSTALL="tidy"
 fi
+

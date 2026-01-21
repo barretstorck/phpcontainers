@@ -1,4 +1,4 @@
-DOCKERFILE_CONTENTS=$(cat <<EOT
+read -r -d '' DOCKERFILE_CONTENTS <<'EOT'
 ADD https://github.com/ibmdb/db2drivers/raw/refs/heads/main/clidriver/linuxx64_odbc_cli.tar.gz /driver.tar.gz
 
 RUN tar -xzvf /driver.tar.gz -C / \
@@ -13,4 +13,3 @@ RUN tar -xzvf /driver.tar.gz -C / \
     && docker-php-ext-install /PDO_IBM \
     && rm -rf /ibm_db2 /PDO_IBM /tmp/* /var/tmp/*
 EOT
-)
