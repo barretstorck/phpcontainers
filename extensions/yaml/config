@@ -1,0 +1,4 @@
+APT_DEPS="libyaml-dev"
+APK_DEPS="yaml-dev yaml autoconf build-base gcc"
+PECL_INSTALL="yaml"
+PHP_EXT_ENABLE="yaml"
