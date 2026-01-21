@@ -1,10 +1,11 @@
-read -r -d '' DOCKERFILE_CONTENTS <<'EOT'
+DOCKERFILE_CONTENTS=$(cat <<'EOT'
 ADD https://github.com/ibmdb/db2drivers/raw/refs/heads/main/clidriver/linuxx64_odbc_cli.tar.gz /driver.tar.gz
 
 RUN tar -xzvf /driver.tar.gz -C / \
     && pecl bundle --destination=/ ibm_db2 \
     && pecl bundle --destination=/ pdo_ibm \
     && export IBM_DB2_HOME=/clidriver \
+    && export C_INCLUDE_PATH=/clidriver/include:$C_INCLUDE_PATH \
     && docker-php-ext-configure /ibm_db2 \
         --with-IBM_DB2=/clidriver \
     && docker-php-ext-configure /PDO_IBM \
@@ -13,3 +14,4 @@ RUN tar -xzvf /driver.tar.gz -C / \
     && docker-php-ext-install /PDO_IBM \
     && rm -rf /ibm_db2 /PDO_IBM /tmp/* /var/tmp/*
 EOT
+)
