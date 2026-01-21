@@ -1,0 +1,3 @@
+APK_DEPS="autoconf build-base gcc"
+PECL_INSTALL="redis"
+PHP_EXT_ENABLE="redis"
