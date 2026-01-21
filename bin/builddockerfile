@@ -101,7 +101,7 @@ fi
 # 2. PHP Extensions
 if [[ -n "$ALL_PHP_EXT_INSTALL" ]]; then
     echo -e "\n# Install PHP extensions"
-    echo "RUN docker-php-ext-install -j $ALL_PHP_EXT_INSTALL"
+    echo "RUN docker-php-ext-install $ALL_PHP_EXT_INSTALL"
 fi
 
 # 3. PECL Extensions
