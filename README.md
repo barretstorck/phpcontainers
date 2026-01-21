@@ -67,12 +67,13 @@ Run the "diagnose" command to get more detailed diagnostics output.
 ```
 
 # How it works
-Each extension is defined within its own directory, with one or more Dockerfiles
-included. The `bin/builddockerfile` script accepts the tag name of the PHP
-Docker container to use as a base, and a list of extensions to include. From
-that the script fetch appropriate Dockerfile snippets from each
-extension's directory, and compiles a new Dockerfile that the final image will
-be made from.
+Each extension is defined within its own directory with a `config` shell script.
+The `bin/builddockerfile` script accepts the tag name of the PHP Docker
+container to use as a base, and a list of extensions to include. The script
+sources the configuration for each requested extension, aggregates their
+dependencies and build commands, and compiles a consolidated Dockerfile. This
+minimizes the number of layers and speeds up the build process by running
+system package updates and installations in a single step.
 
 To preview the Dockerfile, you can run `./bin/builddockerfile <php base tag name> <list of extensions>`.
 For example:
@@ -83,34 +84,19 @@ will output:
 ```Dockerfile
 FROM php:8.4-fpm
 
-# Setup bcmath
-RUN docker-php-ext-install bcmath
-
-# Setup bz2
+# Setup system dependencies
 RUN apt-get update -q \
-    && apt-get install -y -q --no-install-recommends libbz2-dev \
-    && docker-php-ext-install bz2 \
-    && apt-get remove libbz2 -y -q \
+    && apt-get install -y -q --no-install-recommends libbz2-dev libyaml-dev libzip-dev \
     && apt-get autoremove -y -q \
     && apt-get clean -q \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-# Setup yaml
-RUN apt-get update -q \
-    && apt-get install -y -q --no-install-recommends libyaml-dev \
-    && pecl install yaml \
-    && docker-php-ext-enable yaml \
-    && apt-get remove libyaml-dev -y -q \
-    && apt-get autoremove -y -q \
-    && apt-get clean -q \
-    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+# Install PHP extensions
+RUN docker-php-ext-install bcmath bz2 zip
 
-# Setup zip
-RUN apt-get update -q \
-    && apt-get install -y -q --no-install-recommends libzip-dev \
-    && docker-php-ext-install zip \
-    && apt-get remove libzip-dev -y -q \
-    && apt-get autoremove -y -q \
-    && apt-get clean -q \
-    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+# Install PECL extensions
+RUN pecl install yaml
+
+# Enable PHP extensions
+RUN docker-php-ext-enable yaml
 ```
