@@ -1,0 +1,2 @@
+APK_DEPS="linux-headers"
+PHP_EXT_INSTALL="sockets"

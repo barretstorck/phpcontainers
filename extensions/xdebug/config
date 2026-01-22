@@ -1,0 +1,8 @@
+APK_DEPS="autoconf build-base gcc linux-headers"
+PECL_INSTALL="xdebug"
+PHP_EXT_ENABLE="xdebug"
+
+read -r -d '' DOCKERFILE_CONTENTS <<'EOT'
+COPY extensions/xdebug/xdebug.ini /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
+ENV XDEBUG_MODE=off
+EOT

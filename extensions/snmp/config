@@ -1,0 +1,3 @@
+APT_DEPS="libsnmp-dev"
+APK_DEPS="net-snmp-dev net-snmp-libs"
+PHP_EXT_INSTALL="snmp"

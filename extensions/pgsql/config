@@ -1,0 +1,3 @@
+APT_DEPS="libpq-dev"
+APK_DEPS="libpq-dev libpq"
+PHP_EXT_INSTALL="pgsql pdo_pgsql"

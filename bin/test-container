@@ -30,20 +30,10 @@ if [[ -z "$SHIFTED_ARGS" ]]; then
         EXT_PATH="$ROOT_DIR/extensions/$ext"
         
         # Check compatibility
-        if [[ $IS_ALPINE -eq 1 ]]; then
-            # For Alpine, we need apk.dockerfile OR all.dockerfile
-            if [[ -f "$EXT_PATH/apk.dockerfile" || -f "$EXT_PATH/all.dockerfile" ]]; then
-                EXTENSIONS="$EXTENSIONS $ext"
-            else
-                echo "Skipping $ext (not supported on Alpine)"
-            fi
+        if [[ -f "$EXT_PATH/config" ]]; then
+            EXTENSIONS="$EXTENSIONS $ext"
         else
-            # For Debian, we need apt.dockerfile OR all.dockerfile
-            if [[ -f "$EXT_PATH/apt.dockerfile" || -f "$EXT_PATH/all.dockerfile" ]]; then
-                EXTENSIONS="$EXTENSIONS $ext"
-            else
-                echo "Skipping $ext (not supported on Debian)"
-            fi
+            echo "Skipping $ext (no config file found)"
         fi
     done
 else
@@ -86,7 +76,42 @@ fi
 # Verify Extensions
 echo "Verifying extensions..."
 FAILURES=0
+
+# Define IS_APK for config sourcing
+IS_APK=""
+if [[ "$BASE_TAG" == *"alpine"* ]]; then
+    IS_APK=1
+fi
+
 for ext in $EXTENSIONS; do
+    # Check if extension was actually installed
+    EXT_DIR="$ROOT_DIR/extensions/$ext"
+    CONFIG_FILE="$EXT_DIR/config"
+    
+    # Reset variables
+    PHP_EXT_INSTALL=""
+    PECL_INSTALL=""
+    DOCKERFILE_CONTENTS=""
+    PHP_EXT_ENABLE=""
+    
+    if [[ -f "$CONFIG_FILE" ]]; then
+        # Run in a subshell to avoid polluting the main script environment
+        set +e
+        (
+            source "$CONFIG_FILE"
+            if [[ -z "$PHP_EXT_INSTALL" && -z "$PECL_INSTALL" && -z "$DOCKERFILE_CONTENTS" && -z "$PHP_EXT_ENABLE" ]]; then
+                exit 2 # Signal that it's empty
+            fi
+        )
+        RET=$?
+        set -e
+        
+        if [[ $RET -eq 2 ]]; then
+             echo "⚠️  Skipping verification for $ext (disabled for this platform)"
+             continue
+        fi
+    fi
+
     if ! "$SCRIPT_DIR/verify-extension" "$IMAGE_NAME" "$ext"; then
         echo "❌ Verification failed for $ext"
         FAILURES=$((FAILURES+1))
