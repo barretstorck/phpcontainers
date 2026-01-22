@@ -8,10 +8,12 @@ on:
   push:
     branches:
       - main
+  schedule:
+    - cron: '0 0 * * 0' # Weekly on Sunday at midnight
 
 jobs:
   build_php_containers:
-    if: contains(fromJSON('["refs/heads/main"]'), github.ref)
+    if: github.event_name == 'schedule' || contains(fromJSON('["refs/heads/main"]'), github.ref)
     runs-on: ubuntu-latest
     permissions:
       contents: read
