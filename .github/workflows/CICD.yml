@@ -16,12 +16,31 @@ jobs:
     strategy:
       matrix:
         include:
-          - php: 8.4-cli-alpine
-            extensions: composer sockets xdebug
-          - php: 8.4-cli-alpine
-            extensions: composer xdebug
-          - php: 8.4-cli
-            extensions: composer db2 mysqli pgsql xdebug
+          - php:
+              - 8.4-fpm-alpine
+              - 8.4-fpm
+              - 8.4-apache
+              - 8.3-fpm-alpine
+              - 8.3-fpm
+              - 8.3-apache
+              - 8.2-fpm-alpine
+              - 8.2-fpm
+              - 8.2-apache
+            extensions:
+              - composer bcmath bz2 exif gd gmp intl mysqli opcache pgsql redis soap sockets xsl yaml zip
+              - composer bcmath bz2 exif gd gmp imagick intl mysqli opcache pcov pgsql redis soap sockets xdebug xsl yaml zip
+          - php:
+              - 8.4-cli
+              - 8.4-cli-alpine
+              - 8.3-cli
+              - 8.3-cli-alpine
+              - 8.2-cli
+              - 8.2-cli-alpine
+            extension:
+              - composer bcmath bz2 exif gd gmp mysqli pcntl pgsql redis soap sockets xsl yaml zip
+              - composer bcmath bz2 exif gd gmp mysqli pcntl pgsql redis soap sockets xdebug xsl yaml zip
+              - composer bcmath bz2 exif gd gmp imagick mysqli pcntl pgsql redis soap sockets xsl yaml zip
+              - composer bcmath bz2 exif gd gmp imagick mysqli pcntl pgsql redis soap sockets xdebug xsl yaml zip
 
     name: Build ${{ matrix.php }} with ${{ matrix.extensions }}
     runs-on: ubuntu-latest
