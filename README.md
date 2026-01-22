@@ -24,7 +24,7 @@ containers with any combination of the supported extensions listed
 | [gd](https://www.php.net/manual/en/book.image.php) | ☑ | ☑ |  |
 | [gettext](https://www.php.net/manual/en/book.gettext.php) | ☑ | ☑ |  |
 | [gmp](https://www.php.net/manual/en/book.gmp.php) | ☑ | ☑ |  |
-| [imagick](https://www.php.net/manual/en/book.imagick.php) | ☑ | ☐ |  |
+| [imagick](https://www.php.net/manual/en/book.imagick.php) | ☑ | ☑ |  |
 | [intl](https://www.php.net/manual/en/book.intl.php) | ☑ | ☑ |  |
 | [ldap](https://www.php.net/manual/en/book.ldap.php) | ☑ | ☑ |  |
 | [mysqli](https://www.php.net/manual/en/book.mysqli.php) | ☑ | ☑ | Includes pdo_mysql |

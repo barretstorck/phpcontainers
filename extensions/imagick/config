@@ -1,6 +1,4 @@
 APT_DEPS="libmagickwand-dev ghostscript gsfonts unifont"
-
-if [[ -z "$IS_APK" ]]; then
-    PECL_INSTALL="imagick"
-    PHP_EXT_ENABLE="imagick"
-fi
+APK_DEPS="imagemagick-dev ghostscript-fonts"
+PECL_INSTALL="imagick"
+PHP_EXT_ENABLE="imagick"
