@@ -1,7 +1,6 @@
 if [[ -n "$IS_APK" ]]; then
     read -r -d '' DOCKERFILE_CONTENTS <<'EOT'
-ARG NODE_VERSION=22
-RUN apk add --no-cache nodejs~$NODE_VERSION
+RUN apk add --no-cache nodejs npm
 EOT
 else
     read -r -d '' DOCKERFILE_CONTENTS <<'EOT'

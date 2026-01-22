@@ -1,10 +1,7 @@
 APT_DEPS="unixodbc-dev"
 APK_DEPS="unixodbc-dev unixodbc"
 
-if [[ -n "$IS_APK" ]]; then
-    PHP_EXT_INSTALL="odbc"
-else
-    read -r -d '' DOCKERFILE_CONTENTS <<'EOT'
+read -r -d '' DOCKERFILE_CONTENTS <<'EOT'
 RUN docker-php-source extract \
     && echo 'AC_DEFUN([PHP_ALWAYS_SHARED],[])dnl' > temp.m4 \
     && cat /usr/src/php/ext/odbc/config.m4 >> temp.m4 \
@@ -14,4 +11,4 @@ RUN docker-php-source extract \
     && docker-php-ext-install odbc pdo_odbc \
     && docker-php-source delete
 EOT
-fi
+
