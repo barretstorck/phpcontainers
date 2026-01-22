@@ -12,41 +12,113 @@ on:
 jobs:
   build_php_containers:
     if: contains(fromJSON('["refs/heads/main"]'), github.ref)
-    # Define what containers to build here
-    strategy:
-      matrix:
-        include:
-          - php:
-              - 8.4-fpm-alpine
-              - 8.4-fpm
-              - 8.4-apache
-              - 8.3-fpm-alpine
-              - 8.3-fpm
-              - 8.3-apache
-              - 8.2-fpm-alpine
-              - 8.2-fpm
-              - 8.2-apache
-            extensions:
-              - composer bcmath bz2 exif gd gmp intl mysqli opcache pgsql redis soap sockets xsl yaml zip
-              - composer bcmath bz2 exif gd gmp imagick intl mysqli opcache pcov pgsql redis soap sockets xdebug xsl yaml zip
-          - php:
-              - 8.4-cli
-              - 8.4-cli-alpine
-              - 8.3-cli
-              - 8.3-cli-alpine
-              - 8.2-cli
-              - 8.2-cli-alpine
-            extension:
-              - composer bcmath bz2 exif gd gmp mysqli pcntl pgsql redis soap sockets xsl yaml zip
-              - composer bcmath bz2 exif gd gmp mysqli pcntl pgsql redis soap sockets xdebug xsl yaml zip
-              - composer bcmath bz2 exif gd gmp imagick mysqli pcntl pgsql redis soap sockets xsl yaml zip
-              - composer bcmath bz2 exif gd gmp imagick mysqli pcntl pgsql redis soap sockets xdebug xsl yaml zip
-
-    name: Build ${{ matrix.php }} with ${{ matrix.extensions }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # --- WEB VARIANTS (FPM/Apache) ---
+          # PHP 8.4
+          - php: 8.4-fpm-alpine
+            extensions: composer bcmath bz2 exif gd gmp intl mysqli opcache pgsql redis soap sockets xsl yaml zip
+          - php: 8.4-fpm-alpine
+            extensions: composer bcmath bz2 exif gd gmp imagick intl mysqli opcache pcov pgsql redis soap sockets xdebug xsl yaml zip
+          - php: 8.4-fpm
+            extensions: composer bcmath bz2 exif gd gmp intl mysqli opcache pgsql redis soap sockets xsl yaml zip
+          - php: 8.4-fpm
+            extensions: composer bcmath bz2 exif gd gmp imagick intl mysqli opcache pcov pgsql redis soap sockets xdebug xsl yaml zip
+          - php: 8.4-apache
+            extensions: composer bcmath bz2 exif gd gmp intl mysqli opcache pgsql redis soap sockets xsl yaml zip
+          - php: 8.4-apache
+            extensions: composer bcmath bz2 exif gd gmp imagick intl mysqli opcache pcov pgsql redis soap sockets xdebug xsl yaml zip
+          
+          # PHP 8.3
+          - php: 8.3-fpm-alpine
+            extensions: composer bcmath bz2 exif gd gmp intl mysqli opcache pgsql redis soap sockets xsl yaml zip
+          - php: 8.3-fpm-alpine
+            extensions: composer bcmath bz2 exif gd gmp imagick intl mysqli opcache pcov pgsql redis soap sockets xdebug xsl yaml zip
+          - php: 8.3-fpm
+            extensions: composer bcmath bz2 exif gd gmp intl mysqli opcache pgsql redis soap sockets xsl yaml zip
+          - php: 8.3-fpm
+            extensions: composer bcmath bz2 exif gd gmp imagick intl mysqli opcache pcov pgsql redis soap sockets xdebug xsl yaml zip
+          - php: 8.3-apache
+            extensions: composer bcmath bz2 exif gd gmp intl mysqli opcache pgsql redis soap sockets xsl yaml zip
+          - php: 8.3-apache
+            extensions: composer bcmath bz2 exif gd gmp imagick intl mysqli opcache pcov pgsql redis soap sockets xdebug xsl yaml zip
+
+          # PHP 8.2
+          - php: 8.2-fpm-alpine
+            extensions: composer bcmath bz2 exif gd gmp intl mysqli opcache pgsql redis soap sockets xsl yaml zip
+          - php: 8.2-fpm-alpine
+            extensions: composer bcmath bz2 exif gd gmp imagick intl mysqli opcache pcov pgsql redis soap sockets xdebug xsl yaml zip
+          - php: 8.2-fpm
+            extensions: composer bcmath bz2 exif gd gmp intl mysqli opcache pgsql redis soap sockets xsl yaml zip
+          - php: 8.2-fpm
+            extensions: composer bcmath bz2 exif gd gmp imagick intl mysqli opcache pcov pgsql redis soap sockets xdebug xsl yaml zip
+          - php: 8.2-apache
+            extensions: composer bcmath bz2 exif gd gmp intl mysqli opcache pgsql redis soap sockets xsl yaml zip
+          - php: 8.2-apache
+            extensions: composer bcmath bz2 exif gd gmp imagick intl mysqli opcache pcov pgsql redis soap sockets xdebug xsl yaml zip
+
+          # --- CLI VARIANTS ---
+          # PHP 8.4
+          - php: 8.4-cli
+            extensions: composer bcmath bz2 exif gd gmp mysqli pcntl pgsql redis soap sockets xsl yaml zip
+          - php: 8.4-cli
+            extensions: composer bcmath bz2 exif gd gmp mysqli pcntl pgsql redis soap sockets xdebug xsl yaml zip
+          - php: 8.4-cli
+            extensions: composer bcmath bz2 exif gd gmp imagick mysqli pcntl pgsql redis soap sockets xsl yaml zip
+          - php: 8.4-cli
+            extensions: composer bcmath bz2 exif gd gmp imagick mysqli pcntl pgsql redis soap sockets xdebug xsl yaml zip
+          - php: 8.4-cli-alpine
+            extensions: composer bcmath bz2 exif gd gmp mysqli pcntl pgsql redis soap sockets xsl yaml zip
+          - php: 8.4-cli-alpine
+            extensions: composer bcmath bz2 exif gd gmp mysqli pcntl pgsql redis soap sockets xdebug xsl yaml zip
+          - php: 8.4-cli-alpine
+            extensions: composer bcmath bz2 exif gd gmp imagick mysqli pcntl pgsql redis soap sockets xsl yaml zip
+          - php: 8.4-cli-alpine
+            extensions: composer bcmath bz2 exif gd gmp imagick mysqli pcntl pgsql redis soap sockets xdebug xsl yaml zip
+
+          # PHP 8.3
+          - php: 8.3-cli
+            extensions: composer bcmath bz2 exif gd gmp mysqli pcntl pgsql redis soap sockets xsl yaml zip
+          - php: 8.3-cli
+            extensions: composer bcmath bz2 exif gd gmp mysqli pcntl pgsql redis soap sockets xdebug xsl yaml zip
+          - php: 8.3-cli
+            extensions: composer bcmath bz2 exif gd gmp imagick mysqli pcntl pgsql redis soap sockets xsl yaml zip
+          - php: 8.3-cli
+            extensions: composer bcmath bz2 exif gd gmp imagick mysqli pcntl pgsql redis soap sockets xdebug xsl yaml zip
+          - php: 8.3-cli-alpine
+            extensions: composer bcmath bz2 exif gd gmp mysqli pcntl pgsql redis soap sockets xsl yaml zip
+          - php: 8.3-cli-alpine
+            extensions: composer bcmath bz2 exif gd gmp mysqli pcntl pgsql redis soap sockets xdebug xsl yaml zip
+          - php: 8.3-cli-alpine
+            extensions: composer bcmath bz2 exif gd gmp imagick mysqli pcntl pgsql redis soap sockets xsl yaml zip
+          - php: 8.3-cli-alpine
+            extensions: composer bcmath bz2 exif gd gmp imagick mysqli pcntl pgsql redis soap sockets xdebug xsl yaml zip
+
+          # PHP 8.2
+          - php: 8.2-cli
+            extensions: composer bcmath bz2 exif gd gmp mysqli pcntl pgsql redis soap sockets xsl yaml zip
+          - php: 8.2-cli
+            extensions: composer bcmath bz2 exif gd gmp mysqli pcntl pgsql redis soap sockets xdebug xsl yaml zip
+          - php: 8.2-cli
+            extensions: composer bcmath bz2 exif gd gmp imagick mysqli pcntl pgsql redis soap sockets xsl yaml zip
+          - php: 8.2-cli
+            extensions: composer bcmath bz2 exif gd gmp imagick mysqli pcntl pgsql redis soap sockets xdebug xsl yaml zip
+          - php: 8.2-cli-alpine
+            extensions: composer bcmath bz2 exif gd gmp mysqli pcntl pgsql redis soap sockets xsl yaml zip
+          - php: 8.2-cli-alpine
+            extensions: composer bcmath bz2 exif gd gmp mysqli pcntl pgsql redis soap sockets xdebug xsl yaml zip
+          - php: 8.2-cli-alpine
+            extensions: composer bcmath bz2 exif gd gmp imagick mysqli pcntl pgsql redis soap sockets xsl yaml zip
+          - php: 8.2-cli-alpine
+            extensions: composer bcmath bz2 exif gd gmp imagick mysqli pcntl pgsql redis soap sockets xdebug xsl yaml zip
+
+    name: Build ${{ matrix.php }}
     steps:
       - uses: actions/checkout@v4
 
@@ -55,7 +127,7 @@ jobs:
         run: |
           OUTPUT_TAG=$(./bin/generate-tag ${{ matrix.php }} ${{ matrix.extensions }})
           echo "output_tag=$OUTPUT_TAG" >> $GITHUB_OUTPUT
-          echo $OUTPUT_TAG
+          echo "Building: $OUTPUT_TAG"
       
       - name: Build dockerfile
         run: |
