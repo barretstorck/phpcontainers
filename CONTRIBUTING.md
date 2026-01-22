@@ -10,37 +10,36 @@ Each extension resides in its own directory under the `extensions/` folder.
 ```text
 extensions/
 └── <extension-name>/
-    ├── apt.dockerfile   # (Optional) Snippet for Debian-based images
-    ├── apk.dockerfile   # (Optional) Snippet for Alpine-based images
-    └── all.dockerfile   # (Optional) Shared snippet for all OS variants
+    └── config   # Shell script defining dependencies and installation commands
 ```
 
-### Snippet Standards
+### Config File Standards
 
-To keep images lightweight and efficient, please follow these guidelines:
+The `config` file is a sourced shell script that can define the following variables:
 
-#### 1. Debian (`apt.dockerfile`)
-Always clean up the `apt` cache and remove temporary files in the same `RUN` layer.
-```dockerfile
-RUN apt-get update -q \
-    && apt-get install -y -q --no-install-recommends <dependencies> \
-    && docker-php-ext-install <extension> \
-    && apt-get autoremove -y -q \
-    && apt-get clean -q \
-    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+- `APT_DEPS`: Space-separated list of Debian/Ubuntu packages (e.g., `libpng-dev`).
+- `APK_DEPS`: Space-separated list of Alpine packages (e.g., `libpng-dev`).
+- `PHP_EXT_INSTALL`: List of extensions to install via `docker-php-ext-install`.
+- `PECL_INSTALL`: List of extensions to install via `pecl install`.
+- `PHP_EXT_ENABLE`: List of extensions to enable via `docker-php-ext-enable`.
+- `DOCKERFILE_CONTENTS`: Custom Dockerfile commands (e.g., `COPY`, `RUN ...`).
+
+You can use the `IS_APK` variable to check if the target is Alpine (non-empty) or Debian (empty).
+
+#### Example: `extensions/yaml/config`
+```bash
+APT_DEPS="libyaml-dev"
+APK_DEPS="yaml-dev"
+PECL_INSTALL="yaml"
+PHP_EXT_ENABLE="yaml"
 ```
 
-#### 2. Alpine (`apk.dockerfile`)
-Use virtual packages to install build-time dependencies and remove them after installation.
-```dockerfile
-RUN apk add --no-cache --virtual .build-deps <build-dependencies> \
-    && apk add --no-cache <runtime-dependencies> \
-    && docker-php-ext-install <extension> \
-    && apk del .build-deps
+#### Example: `extensions/gd/config`
+```bash
+APT_DEPS="libpng-dev"
+APK_DEPS="libpng-dev"
+PHP_EXT_INSTALL="gd"
 ```
-
-#### 3. Shared Snippets (`all.dockerfile`)
-Use this for instructions that are OS-agnostic, such as `docker-php-ext-install` without external dependencies.
 
 ## Testing Your Changes
 

@@ -17,62 +17,108 @@ fi
 
 # Get the extensions that are requested for the dockerfile.
 # Sort them and remove duplicates.
-EXTENSIONS=$(echo "${@:2}" | xargs -n1 | sort -u | xargs)
+REQUESTED_EXTENSIONS=$(echo "${@:2}" | xargs -n1 | sort -u | xargs)
 
-# Get the script's directory. We use this to know where the dockerfile parts
-# are at.
+# Get the script's directory.
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+EXTENSIONS_DIR="$SCRIPT_DIR/../extensions"
 
-# Echo the header
-echo "FROM php:$BASE"
+# Aggregation variables
+ALL_SYS_DEPS=""
+ALL_PHP_EXT_INSTALL=""
+ALL_PECL_INSTALL=""
+ALL_PHP_EXT_ENABLE=""
+ALL_CUSTOM_CONTENTS=""
 
-# Include each requested extension
-for I in $EXTENSIONS
+for I in $REQUESTED_EXTENSIONS
 do
-    FOUND_FILE=
-    EXT_DIR="$SCRIPT_DIR/../extensions/$I"
+    EXT_DIR="$EXTENSIONS_DIR/$I"
+    CONFIG_FILE="$EXT_DIR/config"
 
     if [[ ! -d "$EXT_DIR" ]]
     then
-        echo "Unsupported extension $I" >&2
+        echo "Unsupported extension $I (directory missing)" >&2
         exit 1
     fi
-    
-    # Add any APK specific commands
-    if [[ -n "$IS_APK" && -f $EXT_DIR/apk.dockerfile ]]
-    then
-        echo -e "\n\n# Setup $I" # Add description and newlines
-        cat $EXT_DIR/apk.dockerfile
-        FOUND_FILE=1
-    fi
 
-    # Add any APT specific commands
-    if [[ -z "$IS_APK" && -f $EXT_DIR/apt.dockerfile ]]
+    if [[ -f "$CONFIG_FILE" ]]
     then
-        echo -e "\n\n# Setup $I" # Add description and newlines
-        cat $EXT_DIR/apt.dockerfile
-        FOUND_FILE=1
-    fi
-    
-    # Add any remaining commands
-    if [[ -f $EXT_DIR/all.dockerfile ]]
-    then
-        if [[ -z "$FOUND_FILE" ]]
-        then
-            echo -e "\n\n# Setup $I" # Add description and newlines
+        # Reset variables before sourcing
+        APT_DEPS=""
+        APK_DEPS=""
+        PHP_EXT_INSTALL=""
+        PECL_INSTALL=""
+        PHP_EXT_ENABLE=""
+        DOCKERFILE_CONTENTS=""
+
+        # Source the config file
+        source "$CONFIG_FILE"
+
+        # Aggregate system dependencies
+        if [[ -n "$IS_APK" ]]; then
+            ALL_SYS_DEPS="$ALL_SYS_DEPS $APK_DEPS"
         else
-            echo -e "\n" # Add a newline
+            ALL_SYS_DEPS="$ALL_SYS_DEPS $APT_DEPS"
         fi
-        
-        cat $EXT_DIR/all.dockerfile
-        FOUND_FILE=1
-    fi
 
-    if [[ -z "$FOUND_FILE" ]]
-    then
-        echo "Unsupported extension $I" >&2
-        exit 1
+        ALL_PHP_EXT_INSTALL="$ALL_PHP_EXT_INSTALL $PHP_EXT_INSTALL"
+        ALL_PECL_INSTALL="$ALL_PECL_INSTALL $PECL_INSTALL"
+        ALL_PHP_EXT_ENABLE="$ALL_PHP_EXT_ENABLE $PHP_EXT_ENABLE"
+        
+        if [[ -n "$DOCKERFILE_CONTENTS" ]]; then
+            ALL_CUSTOM_CONTENTS="$ALL_CUSTOM_CONTENTS"$'\n\n'"# Custom setup for $I"$'\n'"$DOCKERFILE_CONTENTS"
+        fi
+    else
+        # For migration: if config doesn't exist, we might want to warn or skip.
+        # The plan says it will produce empty output for now.
+        echo "# Warning: No config file found for $I"
     fi
 done
 
-echo -e "\n"
+# Deduplicate and sort lists
+ALL_SYS_DEPS=$(echo "$ALL_SYS_DEPS" | xargs -n1 | sort -u | xargs)
+ALL_PHP_EXT_INSTALL=$(echo "$ALL_PHP_EXT_INSTALL" | xargs -n1 | sort -u | xargs)
+ALL_PECL_INSTALL=$(echo "$ALL_PECL_INSTALL" | xargs -n1 | sort -u | xargs)
+ALL_PHP_EXT_ENABLE=$(echo "$ALL_PHP_EXT_ENABLE" | xargs -n1 | sort -u | xargs)
+
+# Output Dockerfile
+echo "FROM php:$BASE"
+
+# 1. System Dependencies
+if [[ -n "$ALL_SYS_DEPS" ]]; then
+    echo -e "\n# Setup system dependencies"
+    if [[ -n "$IS_APK" ]]; then
+        echo "RUN apk add --no-cache $ALL_SYS_DEPS"
+    else
+        echo "RUN apt-get update -q \\"
+        echo "    && apt-get install -y -q --no-install-recommends $ALL_SYS_DEPS \\"
+        echo "    && apt-get autoremove -y -q \\"
+        echo "    && apt-get clean -q \\"
+        echo "    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*"
+    fi
+fi
+
+# 2. PHP Extensions
+if [[ -n "$ALL_PHP_EXT_INSTALL" ]]; then
+    echo -e "\n# Install PHP extensions"
+    echo "RUN docker-php-ext-install $ALL_PHP_EXT_INSTALL"
+fi
+
+# 3. PECL Extensions
+if [[ -n "$ALL_PECL_INSTALL" ]]; then
+    echo -e "\n# Install PECL extensions"
+    echo "RUN pecl install $ALL_PECL_INSTALL"
+fi
+
+# 4. Enable Extensions
+if [[ -n "$ALL_PHP_EXT_ENABLE" ]]; then
+    echo -e "\n# Enable PHP extensions"
+    echo "RUN docker-php-ext-enable $ALL_PHP_EXT_ENABLE"
+fi
+
+# 5. Custom Contents
+if [[ -n "$ALL_CUSTOM_CONTENTS" ]]; then
+    echo "$ALL_CUSTOM_CONTENTS"
+fi
+
+echo ""

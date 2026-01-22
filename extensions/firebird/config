@@ -1,0 +1,5 @@
+APT_DEPS="firebird-dev"
+
+if [[ -z "$IS_APK" ]]; then
+    PHP_EXT_INSTALL="pdo_firebird"
+fi
