@@ -9,11 +9,15 @@ on:
     branches:
       - main
   schedule:
-    - cron: '0 0 * * 0' # Weekly on Sunday at midnight
+    # Weekly, Monday 05:17 UTC. Deliberately off the top of the hour and away
+    # from 00:00 UTC -- GitHub's busiest cron windows, where scheduled runs are
+    # routinely delayed and sometimes dropped entirely.
+    - cron: '17 5 * * 1'
+  workflow_dispatch:
 
 jobs:
   build_php_containers:
-    if: github.event_name == 'schedule' || contains(fromJSON('["refs/heads/main"]'), github.ref)
+    if: github.event_name != 'push' || contains(fromJSON('["refs/heads/main"]'), github.ref)
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -165,3 +169,52 @@ jobs:
           for ext in ${{ matrix.extensions }}; do
             ./bin/verify-extension $IMAGE $ext
           done
+
+  # GitHub stops scheduling cron workflows in public repositories after 60 days
+  # with no commit activity. This job pushes a build receipt after every
+  # scheduled/manual run, which resets that clock. Pushes made with GITHUB_TOKEN
+  # do not trigger workflows, so this cannot cause a build loop.
+  keepalive:
+    name: Keep schedule alive
+    needs: build_php_containers
+    if: always() && github.event_name != 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Record build receipt
+        run: |
+          {
+            echo "last_run_utc:   $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+            echo "trigger:        ${{ github.event_name }}"
+            echo "build_result:   ${{ needs.build_php_containers.result }}"
+            echo "run_url:        ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          } > .github/last-build.txt
+          cat .github/last-build.txt
+
+      - name: Commit and push
+        run: |
+          git config user.name  'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add .github/last-build.txt
+          if git diff --cached --quiet; then
+            echo 'No change to commit.'
+            exit 0
+          fi
+          git commit -m 'chore: record scheduled build [skip ci]'
+          # main can move during a 42-job build; rebase and retry rather than
+          # letting a lost race silently stop resetting the inactivity clock.
+          for attempt in 1 2 3; do
+            if git push origin HEAD:main; then
+              exit 0
+            fi
+            echo "push attempt $attempt failed; rebasing onto origin/main"
+            git fetch origin main
+            git rebase origin/main
+          done
+          echo 'Could not push build receipt after 3 attempts.' >&2
+          exit 1
