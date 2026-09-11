@@ -14,10 +14,101 @@ on:
     # routinely delayed and sometimes dropped entirely.
     - cron: '17 5 * * 1'
   workflow_dispatch:
+    inputs:
+      force_rebuild:
+        description: 'Rebuild every image even if its base image is unchanged'
+        type: boolean
+        default: true
 
 jobs:
-  build_php_containers:
+  # Most scheduled runs have nothing to do: the official php images change far
+  # less often than weekly. Resolve each distinct base tag's current digest and
+  # compare it to the digests recorded at the last successful build, so an
+  # unchanged upstream costs one short job instead of 42 image builds.
+  #
+  # Every failure path here deliberately falls back to rebuilding everything.
+  # Over-building wastes minutes; under-building silently ships stale images.
+  resolve_bases:
+    name: Check base images
     if: github.event_name != 'push' || contains(fromJSON('["refs/heads/main"]'), github.ref)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      rebuild_all: ${{ steps.resolve.outputs.rebuild_all }}
+      changed: ${{ steps.resolve.outputs.changed }}
+      digests: ${{ steps.resolve.outputs.digests }}
+      any: ${{ steps.resolve.outputs.any }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve base image digests
+        id: resolve
+        run: |
+          set -euo pipefail
+          STATE=.github/base-digests.json
+
+          # A push may have changed builddockerfile or an extension config, and a
+          # manual run means someone wants the build now -- neither is safe to gate
+          # on upstream digests.
+          REBUILD_ALL=false
+          if [[ '${{ github.event_name }}' == 'push' ]]; then
+            REBUILD_ALL=true
+            echo 'Push event: rebuilding everything.'
+          elif [[ '${{ github.event_name }}' == 'workflow_dispatch' && '${{ inputs.force_rebuild }}' == 'true' ]]; then
+            REBUILD_ALL=true
+            echo 'Manual run with force_rebuild: rebuilding everything.'
+          elif [[ ! -f "$STATE" ]] || ! jq -e . "$STATE" >/dev/null 2>&1; then
+            REBUILD_ALL=true
+            echo "No usable $STATE yet: rebuilding everything to establish a baseline."
+          fi
+
+          # Read the tag list out of the matrix itself so the two can never drift.
+          mapfile -t TAGS < <(grep -oP '^\s*- php:\s*\K\S+' .github/workflows/CICD.yml | sort -u)
+          if [[ ${#TAGS[@]} -eq 0 ]]; then
+            echo 'Could not read any base tags from the matrix; rebuilding everything.' >&2
+            REBUILD_ALL=true
+          fi
+          echo "Found ${#TAGS[@]} distinct base tags."
+
+          DIGESTS='{}'
+          CHANGED='[]'
+          for TAG in "${TAGS[@]}"; do
+            if ! DIGEST=$(./bin/resolve-base-digest "$TAG"); then
+              echo "::warning::Could not resolve php:$TAG; treating it as changed."
+              CHANGED=$(jq -c --arg t "$TAG" '. + [$t]' <<<"$CHANGED")
+              continue
+            fi
+            DIGESTS=$(jq -c --arg t "$TAG" --arg d "$DIGEST" '.[$t] = $d' <<<"$DIGESTS")
+
+            PREVIOUS=$(jq -r --arg t "$TAG" '.[$t] // ""' "$STATE" 2>/dev/null || echo '')
+            if [[ "$DIGEST" == "$PREVIOUS" ]]; then
+              echo "  php:$TAG unchanged"
+            else
+              echo "  php:$TAG CHANGED ${PREVIOUS:-<new>} -> $DIGEST"
+              CHANGED=$(jq -c --arg t "$TAG" '. + [$t]' <<<"$CHANGED")
+            fi
+          done
+
+          if [[ "$REBUILD_ALL" == 'true' ]]; then
+            ANY=true
+          elif [[ $(jq 'length' <<<"$CHANGED") -gt 0 ]]; then
+            ANY=true
+          else
+            ANY=false
+            echo 'No base image changed. Skipping all builds.'
+          fi
+
+          {
+            echo "rebuild_all=$REBUILD_ALL"
+            echo "changed=$CHANGED"
+            echo "digests=$DIGESTS"
+            echo "any=$ANY"
+          } >> "$GITHUB_OUTPUT"
+
+  build_php_containers:
+    needs: resolve_bases
+    if: needs.resolve_bases.outputs.any == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -126,9 +217,24 @@ jobs:
 
     name: Build ${{ matrix.php }}
     steps:
+      - name: Gate on base image change
+        id: gate
+        run: |
+          set -euo pipefail
+          if [[ '${{ needs.resolve_bases.outputs.rebuild_all }}' == 'true' ]] \
+            || jq -e --arg t '${{ matrix.php }}' 'index($t) != null' \
+                 <<<'${{ needs.resolve_bases.outputs.changed }}' >/dev/null; then
+            echo 'build=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'build=false' >> "$GITHUB_OUTPUT"
+            echo "php:${{ matrix.php }} is unchanged upstream; skipping this build."
+          fi
+
       - uses: actions/checkout@v4
+        if: steps.gate.outputs.build == 'true'
 
       - name: Generate output tag
+        if: steps.gate.outputs.build == 'true'
         id: output_tag
         run: |
           OUTPUT_TAG=$(./bin/generate-tag ${{ matrix.php }} ${{ matrix.extensions }})
@@ -136,14 +242,17 @@ jobs:
           echo "Building: $OUTPUT_TAG"
       
       - name: Build dockerfile
+        if: steps.gate.outputs.build == 'true'
         run: |
           ./bin/builddockerfile ${{ matrix.php }} ${{ matrix.extensions }} > dockerfile
           cat dockerfile
 
       - name: Set up Buildx
+        if: steps.gate.outputs.build == 'true'
         uses: docker/setup-buildx-action@v3
 
       - name: Login to GHCR
+        if: steps.gate.outputs.build == 'true'
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
@@ -151,6 +260,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push container
+        if: steps.gate.outputs.build == 'true'
         uses: docker/build-push-action@v5
         with:
           provenance: false
@@ -164,6 +274,7 @@ jobs:
             PHP_TAG=${{ matrix.php }}
 
       - name: Verify extensions
+        if: steps.gate.outputs.build == 'true'
         run: |
           IMAGE=ghcr.io/barretstorck/php:${{ steps.output_tag.outputs.output_tag }}
           for ext in ${{ matrix.extensions }}; do
@@ -176,7 +287,7 @@ jobs:
   # do not trigger workflows, so this cannot cause a build loop.
   keepalive:
     name: Keep schedule alive
-    needs: build_php_containers
+    needs: [resolve_bases, build_php_containers]
     if: always() && github.event_name != 'push'
     runs-on: ubuntu-latest
     permissions:
@@ -188,19 +299,35 @@ jobs:
 
       - name: Record build receipt
         run: |
+          set -euo pipefail
+          CHANGED='${{ needs.resolve_bases.outputs.changed }}'
           {
             echo "last_run_utc:   $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
             echo "trigger:        ${{ github.event_name }}"
             echo "build_result:   ${{ needs.build_php_containers.result }}"
+            echo "bases_changed:  ${CHANGED:-[]}"
             echo "run_url:        ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           } > .github/last-build.txt
           cat .github/last-build.txt
+
+      # Only advance the recorded digests when every image built cleanly. If any
+      # build failed we leave the old digests in place so the next run retries
+      # instead of treating a failed image as successfully published.
+      - name: Record base image digests
+        if: needs.build_php_containers.result == 'success'
+        run: |
+          set -euo pipefail
+          jq -S . <<<'${{ needs.resolve_bases.outputs.digests }}' > .github/base-digests.json
+          cat .github/base-digests.json
 
       - name: Commit and push
         run: |
           git config user.name  'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add .github/last-build.txt
+          if [[ -f .github/base-digests.json ]]; then
+            git add .github/base-digests.json
+          fi
           if git diff --cached --quiet; then
             echo 'No change to commit.'
             exit 0

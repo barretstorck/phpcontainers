@@ -1,0 +1,37 @@
+#!/bin/bash
+# Resolve the current manifest digest of an official php base image tag.
+#
+# Usage: resolve-base-digest <tag>            e.g. resolve-base-digest 8.4-cli-alpine
+#
+# Prints the multi-arch index digest to stdout. Any change to any platform in
+# the tag changes this digest, so it over-detects rather than under-detects --
+# the safe direction for a build gate.
+set -euo pipefail
+
+TAG=$1
+
+if [[ -z "${TAG:-}" ]]; then
+    echo "usage: $(basename "$0") <tag>" >&2
+    exit 2
+fi
+
+TOKEN=$(curl -fsS --retry 3 --retry-delay 2 \
+    "https://auth.docker.io/token?service=registry.docker.io&scope=repository:library/php:pull" \
+    | jq -re .token)
+
+# The Accept headers matter: without them the registry may answer with a
+# legacy single-arch manifest whose digest differs from the tag's index.
+DIGEST=$(curl -fsSI --retry 3 --retry-delay 2 \
+    -H "Authorization: Bearer $TOKEN" \
+    -H "Accept: application/vnd.oci.image.index.v1+json" \
+    -H "Accept: application/vnd.docker.distribution.manifest.list.v2+json" \
+    -H "Accept: application/vnd.docker.distribution.manifest.v2+json" \
+    "https://registry-1.docker.io/v2/library/php/manifests/$TAG" \
+    | tr -d '\r' | awk -F': ' 'tolower($1)=="docker-content-digest"{print $2}')
+
+if [[ ! "$DIGEST" =~ ^sha256:[0-9a-f]{64}$ ]]; then
+    echo "could not resolve digest for php:$TAG" >&2
+    exit 1
+fi
+
+echo "$DIGEST"
