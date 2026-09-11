@@ -9,10 +9,14 @@ on:
     branches:
       - main
   schedule:
-    # Weekly, Monday 05:17 UTC. Deliberately off the top of the hour and away
-    # from 00:00 UTC -- GitHub's busiest cron windows, where scheduled runs are
+    # Daily at 05:17 UTC. Deliberately off the top of the hour and away from
+    # 00:00 UTC -- GitHub's busiest cron windows, where scheduled runs are
     # routinely delayed and sometimes dropped entirely.
-    - cron: '17 5 * * 1'
+    #
+    # Daily rather than weekly because resolve_bases makes a no-op run cost about
+    # a minute, so polling often is cheap and bounds how long a base image
+    # security fix can sit unpublished at roughly 24 hours.
+    - cron: '17 5 * * *'
   workflow_dispatch:
     inputs:
       force_rebuild:
@@ -297,19 +301,6 @@ jobs:
         with:
           ref: main
 
-      - name: Record build receipt
-        run: |
-          set -euo pipefail
-          CHANGED='${{ needs.resolve_bases.outputs.changed }}'
-          {
-            echo "last_run_utc:   $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
-            echo "trigger:        ${{ github.event_name }}"
-            echo "build_result:   ${{ needs.build_php_containers.result }}"
-            echo "bases_changed:  ${CHANGED:-[]}"
-            echo "run_url:        ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          } > .github/last-build.txt
-          cat .github/last-build.txt
-
       # Only advance the recorded digests when every image built cleanly. If any
       # build failed we leave the old digests in place so the next run retries
       # instead of treating a failed image as successfully published.
@@ -320,18 +311,43 @@ jobs:
           jq -S . <<<'${{ needs.resolve_bases.outputs.digests }}' > .github/base-digests.json
           cat .github/base-digests.json
 
+      # At a daily cadence, a receipt on every run would be 365 commits a year.
+      # Commit only when there is something real to record, or when main is old
+      # enough that the 60-day inactivity clock actually needs resetting.
       - name: Commit and push
         run: |
-          git config user.name  'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add .github/last-build.txt
+          set -euo pipefail
+          KEEPALIVE_DAYS=45
+
           if [[ -f .github/base-digests.json ]]; then
             git add .github/base-digests.json
           fi
-          if git diff --cached --quiet; then
-            echo 'No change to commit.'
+          DIGESTS_CHANGED=false
+          if ! git diff --cached --quiet; then
+            DIGESTS_CHANGED=true
+          fi
+
+          AGE_DAYS=$(( ( $(date +%s) - $(git log -1 --format=%ct) ) / 86400 ))
+          echo "digests changed: $DIGESTS_CHANGED; main last committed ${AGE_DAYS}d ago"
+
+          if [[ "$DIGESTS_CHANGED" != 'true' && "$AGE_DAYS" -lt "$KEEPALIVE_DAYS" ]]; then
+            echo 'Nothing to record, and the schedule is not at risk yet. No commit.'
             exit 0
           fi
+
+          CHANGED='${{ needs.resolve_bases.outputs.changed }}'
+          {
+            echo "last_run_utc:   $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+            echo "trigger:        ${{ github.event_name }}"
+            echo "build_result:   ${{ needs.build_php_containers.result }}"
+            echo "bases_changed:  ${CHANGED:-[]}"
+            echo "run_url:        ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          } > .github/last-build.txt
+          cat .github/last-build.txt
+
+          git config user.name  'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add .github/last-build.txt
           git commit -m 'chore: record scheduled build [skip ci]'
           # main can move during a 42-job build; rebase and retry rather than
           # letting a lost race silently stop resetting the inactivity clock.
