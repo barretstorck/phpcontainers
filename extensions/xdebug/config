@@ -1,5 +1,6 @@
 APK_DEPS="autoconf build-base gcc linux-headers"
 PECL_INSTALL="xdebug"
+PIE_INSTALL="xdebug/xdebug"
 PHP_EXT_ENABLE="xdebug"
 
 read -r -d '' DOCKERFILE_CONTENTS <<'EOT'

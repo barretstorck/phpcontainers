@@ -97,6 +97,7 @@ for ext in $EXTENSIONS; do
     # Reset variables
     PHP_EXT_INSTALL=""
     PECL_INSTALL=""
+    PIE_INSTALL=""
     DOCKERFILE_CONTENTS=""
     PHP_EXT_ENABLE=""
     
@@ -105,7 +106,7 @@ for ext in $EXTENSIONS; do
         set +e
         (
             source "$CONFIG_FILE"
-            if [[ -z "$PHP_EXT_INSTALL" && -z "$PECL_INSTALL" && -z "$DOCKERFILE_CONTENTS" && -z "$PHP_EXT_ENABLE" ]]; then
+            if [[ -z "$PHP_EXT_INSTALL" && -z "$PECL_INSTALL" && -z "$PIE_INSTALL" && -z "$DOCKERFILE_CONTENTS" && -z "$PHP_EXT_ENABLE" ]]; then
                 exit 2 # Signal that it's empty
             fi
         )

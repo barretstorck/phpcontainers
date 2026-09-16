@@ -76,6 +76,9 @@ minimizes the number of layers and speeds up the build process by running
 system package updates and installations in a single step.
 
 To preview the Dockerfile, you can run `./bin/builddockerfile <php base tag name> <list of extensions>`.
+PECL extensions are installed with [PIE](https://github.com/php/pie) on PHP 8.5
+and newer, and with `pecl` on PHP 8.4.
+
 For example:
 ```shell
 ./bin/builddockerfile 8.5-fpm bcmath bz2 yaml zip
@@ -86,7 +89,7 @@ FROM php:8.5-fpm
 
 # Setup system dependencies
 RUN apt-get update -q \
-    && apt-get install -y -q --no-install-recommends libbz2-dev libyaml-dev libzip-dev \
+    && apt-get install -y -q --no-install-recommends libbz2-dev libtool libyaml-dev libzip-dev unzip \
     && apt-get autoremove -y -q \
     && apt-get clean -q \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
@@ -94,8 +97,10 @@ RUN apt-get update -q \
 # Install PHP extensions
 RUN docker-php-ext-install bcmath bz2 zip
 
-# Install PECL extensions
-RUN pecl install yaml
+# Install PECL extensions with PIE
+COPY --from=ghcr.io/php/pie:1-bin /pie /usr/bin/pie
+RUN pie install -n --skip-enable-extension pecl/yaml \
+    && rm -rf /root/.pie /root/.composer/cache
 
 # Enable PHP extensions
 RUN docker-php-ext-enable yaml
