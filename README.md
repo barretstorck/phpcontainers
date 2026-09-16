@@ -56,13 +56,13 @@ containers with any combination of the supported extensions listed
 # Example
 ### A lightweight PHP development environment
 ```shell
-# Build a PHP 8.4 cli alpine container with the composer and xdebug extensions
-make build PHP=8.4-cli-alpine EXTENSIONS="composer xdebug"
+# Build a PHP 8.5 cli alpine container with the composer and xdebug extensions
+make build PHP=8.5-cli-alpine EXTENSIONS="composer xdebug"
 
 # Run the `composer -v` command on the newly made container
-docker run -it --rm php:8.4-cli-alpine-composer-xdebug composer -V
-Composer version 2.8.5 2025-01-21 15:23:40
-PHP version 8.4.3 (/usr/local/bin/php)
+docker run -it --rm php:8.5-cli-alpine-composer-xdebug composer -V
+Composer version 2.10.3 2026-08-27 13:34:23
+PHP version 8.5.10 (/usr/local/bin/php)
 Run the "diagnose" command to get more detailed diagnostics output.
 ```
 
@@ -78,11 +78,11 @@ system package updates and installations in a single step.
 To preview the Dockerfile, you can run `./bin/builddockerfile <php base tag name> <list of extensions>`.
 For example:
 ```shell
-./bin/builddockerfile 8.4-fpm bcmath bz2 yaml zip
+./bin/builddockerfile 8.5-fpm bcmath bz2 yaml zip
 ```
 will output:
 ```Dockerfile
-FROM php:8.4-fpm
+FROM php:8.5-fpm
 
 # Setup system dependencies
 RUN apt-get update -q \
@@ -104,17 +104,17 @@ RUN docker-php-ext-enable yaml
 # Prebuilt Containers
 | Container Name | Base Image | Purpose | Extensions |
 |---|---|---|---|
-| `ghcr.io/barretstorck/php:8.4-fpm-alpine-bcmath-bz2-composer-exif-gd-gmp-intl-mysqli-opcache-pgsql-redis-soap-sockets-xsl-yaml-zip` | `8.4-fpm-alpine` | Production Web | composer bcmath bz2 exif gd gmp intl mysqli opcache pgsql redis soap sockets xsl yaml zip |
-| `ghcr.io/barretstorck/php:8.4-fpm-bcmath-bz2-composer-exif-gd-gmp-intl-mysqli-opcache-pgsql-redis-soap-sockets-xsl-yaml-zip` | `8.4-fpm` | Production Web | composer bcmath bz2 exif gd gmp intl mysqli opcache pgsql redis soap sockets xsl yaml zip |
-| `ghcr.io/barretstorck/php:8.4-apache-bcmath-bz2-composer-exif-gd-gmp-intl-mysqli-opcache-pgsql-redis-soap-sockets-xsl-yaml-zip` | `8.4-apache` | Production Web | composer bcmath bz2 exif gd gmp intl mysqli opcache pgsql redis soap sockets xsl yaml zip |
-| `ghcr.io/barretstorck/php:8.4-fpm-alpine-bcmath-bz2-composer-exif-gd-gmp-imagick-intl-mysqli-opcache-pcov-pgsql-redis-soap-sockets-xdebug-xsl-yaml-zip` | `8.4-fpm-alpine` | Development Web | composer bcmath bz2 exif gd gmp imagick intl mysqli opcache pcov pgsql redis soap sockets xdebug xsl yaml zip |
-| `ghcr.io/barretstorck/php:8.4-fpm-bcmath-bz2-composer-exif-gd-gmp-imagick-intl-mysqli-opcache-pcov-pgsql-redis-soap-sockets-xdebug-xsl-yaml-zip` | `8.4-fpm` | Development Web | composer bcmath bz2 exif gd gmp imagick intl mysqli opcache pcov pgsql redis soap sockets xdebug xsl yaml zip |
-| `ghcr.io/barretstorck/php:8.4-apache-bcmath-bz2-composer-exif-gd-gmp-imagick-intl-mysqli-opcache-pcov-pgsql-redis-soap-sockets-xdebug-xsl-yaml-zip` | `8.4-apache` | Development Web | composer bcmath bz2 exif gd gmp imagick intl mysqli opcache pcov pgsql redis soap sockets xdebug xsl yaml zip |
-| `ghcr.io/barretstorck/php:8.4-cli-bcmath-bz2-composer-exif-gd-gmp-mysqli-pcntl-pgsql-redis-soap-sockets-xsl-yaml-zip` | `8.4-cli` | Standard CLI | composer bcmath bz2 exif gd gmp mysqli pcntl pgsql redis soap sockets xsl yaml zip |
-| `ghcr.io/barretstorck/php:8.4-cli-bcmath-bz2-composer-exif-gd-gmp-mysqli-pcntl-pgsql-redis-soap-sockets-xdebug-xsl-yaml-zip` | `8.4-cli` | Debug CLI | composer bcmath bz2 exif gd gmp mysqli pcntl pgsql redis soap sockets xdebug xsl yaml zip |
-| `ghcr.io/barretstorck/php:8.4-cli-bcmath-bz2-composer-exif-gd-gmp-imagick-mysqli-pcntl-pgsql-redis-soap-sockets-xsl-yaml-zip` | `8.4-cli` | Imaging CLI | composer bcmath bz2 exif gd gmp imagick mysqli pcntl pgsql redis soap sockets xsl yaml zip |
-| `ghcr.io/barretstorck/php:8.4-cli-bcmath-bz2-composer-exif-gd-gmp-imagick-mysqli-pcntl-pgsql-redis-soap-sockets-xdebug-xsl-yaml-zip` | `8.4-cli` | Full CLI | composer bcmath bz2 exif gd gmp imagick mysqli pcntl pgsql redis soap sockets xdebug xsl yaml zip |
-| `ghcr.io/barretstorck/php:8.4-cli-alpine-bcmath-bz2-composer-exif-gd-gmp-mysqli-pcntl-pgsql-redis-soap-sockets-xsl-yaml-zip` | `8.4-cli-alpine` | Standard CLI | composer bcmath bz2 exif gd gmp mysqli pcntl pgsql redis soap sockets xsl yaml zip |
-| `ghcr.io/barretstorck/php:8.4-cli-alpine-bcmath-bz2-composer-exif-gd-gmp-mysqli-pcntl-pgsql-redis-soap-sockets-xdebug-xsl-yaml-zip` | `8.4-cli-alpine` | Debug CLI | composer bcmath bz2 exif gd gmp mysqli pcntl pgsql redis soap sockets xdebug xsl yaml zip |
-| `ghcr.io/barretstorck/php:8.4-cli-alpine-bcmath-bz2-composer-exif-gd-gmp-imagick-mysqli-pcntl-pgsql-redis-soap-sockets-xsl-yaml-zip` | `8.4-cli-alpine` | Imaging CLI | composer bcmath bz2 exif gd gmp imagick mysqli pcntl pgsql redis soap sockets xsl yaml zip |
-| `ghcr.io/barretstorck/php:8.4-cli-alpine-bcmath-bz2-composer-exif-gd-gmp-imagick-mysqli-pcntl-pgsql-redis-soap-sockets-xdebug-xsl-yaml-zip` | `8.4-cli-alpine` | Full CLI | composer bcmath bz2 exif gd gmp imagick mysqli pcntl pgsql redis soap sockets xdebug xsl yaml zip |
+| `ghcr.io/barretstorck/php:8.5-fpm-alpine-bcmath-bz2-composer-exif-gd-gmp-intl-mysqli-opcache-pgsql-redis-soap-sockets-xsl-yaml-zip` | `8.5-fpm-alpine` | Production Web | composer bcmath bz2 exif gd gmp intl mysqli opcache pgsql redis soap sockets xsl yaml zip |
+| `ghcr.io/barretstorck/php:8.5-fpm-bcmath-bz2-composer-exif-gd-gmp-intl-mysqli-opcache-pgsql-redis-soap-sockets-xsl-yaml-zip` | `8.5-fpm` | Production Web | composer bcmath bz2 exif gd gmp intl mysqli opcache pgsql redis soap sockets xsl yaml zip |
+| `ghcr.io/barretstorck/php:8.5-apache-bcmath-bz2-composer-exif-gd-gmp-intl-mysqli-opcache-pgsql-redis-soap-sockets-xsl-yaml-zip` | `8.5-apache` | Production Web | composer bcmath bz2 exif gd gmp intl mysqli opcache pgsql redis soap sockets xsl yaml zip |
+| `ghcr.io/barretstorck/php:8.5-fpm-alpine-bcmath-bz2-composer-exif-gd-gmp-imagick-intl-mysqli-opcache-pcov-pgsql-redis-soap-sockets-xdebug-xsl-yaml-zip` | `8.5-fpm-alpine` | Development Web | composer bcmath bz2 exif gd gmp imagick intl mysqli opcache pcov pgsql redis soap sockets xdebug xsl yaml zip |
+| `ghcr.io/barretstorck/php:8.5-fpm-bcmath-bz2-composer-exif-gd-gmp-imagick-intl-mysqli-opcache-pcov-pgsql-redis-soap-sockets-xdebug-xsl-yaml-zip` | `8.5-fpm` | Development Web | composer bcmath bz2 exif gd gmp imagick intl mysqli opcache pcov pgsql redis soap sockets xdebug xsl yaml zip |
+| `ghcr.io/barretstorck/php:8.5-apache-bcmath-bz2-composer-exif-gd-gmp-imagick-intl-mysqli-opcache-pcov-pgsql-redis-soap-sockets-xdebug-xsl-yaml-zip` | `8.5-apache` | Development Web | composer bcmath bz2 exif gd gmp imagick intl mysqli opcache pcov pgsql redis soap sockets xdebug xsl yaml zip |
+| `ghcr.io/barretstorck/php:8.5-cli-bcmath-bz2-composer-exif-gd-gmp-mysqli-pcntl-pgsql-redis-soap-sockets-xsl-yaml-zip` | `8.5-cli` | Standard CLI | composer bcmath bz2 exif gd gmp mysqli pcntl pgsql redis soap sockets xsl yaml zip |
+| `ghcr.io/barretstorck/php:8.5-cli-bcmath-bz2-composer-exif-gd-gmp-mysqli-pcntl-pgsql-redis-soap-sockets-xdebug-xsl-yaml-zip` | `8.5-cli` | Debug CLI | composer bcmath bz2 exif gd gmp mysqli pcntl pgsql redis soap sockets xdebug xsl yaml zip |
+| `ghcr.io/barretstorck/php:8.5-cli-bcmath-bz2-composer-exif-gd-gmp-imagick-mysqli-pcntl-pgsql-redis-soap-sockets-xsl-yaml-zip` | `8.5-cli` | Imaging CLI | composer bcmath bz2 exif gd gmp imagick mysqli pcntl pgsql redis soap sockets xsl yaml zip |
+| `ghcr.io/barretstorck/php:8.5-cli-bcmath-bz2-composer-exif-gd-gmp-imagick-mysqli-pcntl-pgsql-redis-soap-sockets-xdebug-xsl-yaml-zip` | `8.5-cli` | Full CLI | composer bcmath bz2 exif gd gmp imagick mysqli pcntl pgsql redis soap sockets xdebug xsl yaml zip |
+| `ghcr.io/barretstorck/php:8.5-cli-alpine-bcmath-bz2-composer-exif-gd-gmp-mysqli-pcntl-pgsql-redis-soap-sockets-xsl-yaml-zip` | `8.5-cli-alpine` | Standard CLI | composer bcmath bz2 exif gd gmp mysqli pcntl pgsql redis soap sockets xsl yaml zip |
+| `ghcr.io/barretstorck/php:8.5-cli-alpine-bcmath-bz2-composer-exif-gd-gmp-mysqli-pcntl-pgsql-redis-soap-sockets-xdebug-xsl-yaml-zip` | `8.5-cli-alpine` | Debug CLI | composer bcmath bz2 exif gd gmp mysqli pcntl pgsql redis soap sockets xdebug xsl yaml zip |
+| `ghcr.io/barretstorck/php:8.5-cli-alpine-bcmath-bz2-composer-exif-gd-gmp-imagick-mysqli-pcntl-pgsql-redis-soap-sockets-xsl-yaml-zip` | `8.5-cli-alpine` | Imaging CLI | composer bcmath bz2 exif gd gmp imagick mysqli pcntl pgsql redis soap sockets xsl yaml zip |
+| `ghcr.io/barretstorck/php:8.5-cli-alpine-bcmath-bz2-composer-exif-gd-gmp-imagick-mysqli-pcntl-pgsql-redis-soap-sockets-xdebug-xsl-yaml-zip` | `8.5-cli-alpine` | Full CLI | composer bcmath bz2 exif gd gmp imagick mysqli pcntl pgsql redis soap sockets xdebug xsl yaml zip |

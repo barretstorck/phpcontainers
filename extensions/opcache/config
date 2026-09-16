@@ -1,1 +1,6 @@
-PHP_EXT_INSTALL="opcache"
+# OPcache is always compiled into PHP from 8.5 onward, and asking
+# docker-php-ext-install to build it again fails. Only install it for older
+# versions; a version-less tag (cli, fpm, ...) tracks the newest PHP.
+if [[ -n "$PHP_VERSION" ]] && php_version_lt 8.5; then
+    PHP_EXT_INSTALL="opcache"
+fi

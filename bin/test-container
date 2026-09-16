@@ -5,8 +5,8 @@ set -e
 if [[ -z "$1" || "$1" == "--help" || "$1" == "-h" ]]; then
     echo "Usage: $0 <php-base-tag> [extension1 extension2 ...]"
     echo "  If no extensions are provided, attempts to test ALL supported extensions."
-    echo "Example: $0 8.4-fpm"
-    echo "Example: $0 8.4-cli-alpine bcmath zip"
+    echo "Example: $0 8.5-fpm"
+    echo "Example: $0 8.5-cli-alpine bcmath zip"
     exit 0
 fi
 
@@ -77,11 +77,17 @@ fi
 echo "Verifying extensions..."
 FAILURES=0
 
-# Define IS_APK for config sourcing
+# Define IS_APK and PHP_VERSION for config sourcing
 IS_APK=""
 if [[ "$BASE_TAG" == *"alpine"* ]]; then
     IS_APK=1
 fi
+PHP_VERSION=$("$SCRIPT_DIR/php-version" "$BASE_TAG")
+
+# Must match php_version_lt in builddockerfile.
+php_version_lt() {
+    [[ "$PHP_VERSION" != "$1" && "$(printf '%s\n' "$PHP_VERSION" "$1" | sort -V | head -n1)" == "$PHP_VERSION" ]]
+}
 
 for ext in $EXTENSIONS; do
     # Check if extension was actually installed

@@ -1,7 +1,7 @@
 #!/bin/bash
 # Resolve the current manifest digest of an official php base image tag.
 #
-# Usage: resolve-base-digest <tag>            e.g. resolve-base-digest 8.4-cli-alpine
+# Usage: resolve-base-digest <tag>            e.g. resolve-base-digest 8.5-cli-alpine
 #
 # Prints the multi-arch index digest to stdout. Any change to any platform in
 # the tag changes this digest, so it over-detects rather than under-detects --
