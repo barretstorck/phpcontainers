@@ -1,4 +1,5 @@
 APT_DEPS="libmagickwand-dev ghostscript gsfonts unifont"
 APK_DEPS="imagemagick-dev ghostscript-fonts"
 PECL_INSTALL="imagick"
+PIE_INSTALL="imagick/imagick"
 PHP_EXT_ENABLE="imagick"

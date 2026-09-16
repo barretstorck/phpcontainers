@@ -1,3 +1,4 @@
 APK_DEPS="autoconf build-base gcc"
 PECL_INSTALL="pcov"
+PIE_INSTALL="pecl/pcov"
 PHP_EXT_ENABLE="pcov"

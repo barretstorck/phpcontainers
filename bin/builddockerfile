@@ -31,10 +31,20 @@ php_version_lt() {
     [[ "$PHP_VERSION" != "$1" && "$(printf '%s\n' "$PHP_VERSION" "$1" | sort -V | head -n1)" == "$PHP_VERSION" ]]
 }
 
+# PHP 8.5+ installs PECL extensions with PIE, which replaces pecl (the 8.6
+# images no longer ship pecl at all). A version-less tag tracks the newest PHP.
+# The pecl path only serves PHP 8.4, whose active support ends 2026-12-31;
+# remove it (and PECL_INSTALL) once 8.4 is dropped.
+USE_PIE=
+if [[ -z "$PHP_VERSION" ]] || ! php_version_lt 8.5; then
+    USE_PIE=1
+fi
+
 # Aggregation variables
 ALL_SYS_DEPS=""
 ALL_PHP_EXT_INSTALL=""
 ALL_PECL_INSTALL=""
+ALL_PIE_INSTALL=""
 ALL_PHP_EXT_ENABLE=""
 ALL_CUSTOM_CONTENTS=""
 
@@ -56,6 +66,7 @@ do
         APK_DEPS=""
         PHP_EXT_INSTALL=""
         PECL_INSTALL=""
+        PIE_INSTALL=""
         PHP_EXT_ENABLE=""
         DOCKERFILE_CONTENTS=""
 
@@ -70,7 +81,15 @@ do
         fi
 
         ALL_PHP_EXT_INSTALL="$ALL_PHP_EXT_INSTALL $PHP_EXT_INSTALL"
-        ALL_PECL_INSTALL="$ALL_PECL_INSTALL $PECL_INSTALL"
+        if [[ -n "$USE_PIE" ]]; then
+            if [[ -n "$PECL_INSTALL" && -z "$PIE_INSTALL" ]]; then
+                echo "Extension $I sets PECL_INSTALL but no PIE_INSTALL, which PHP $PHP_VERSION needs" >&2
+                exit 1
+            fi
+            ALL_PIE_INSTALL="$ALL_PIE_INSTALL $PIE_INSTALL"
+        else
+            ALL_PECL_INSTALL="$ALL_PECL_INSTALL $PECL_INSTALL"
+        fi
         ALL_PHP_EXT_ENABLE="$ALL_PHP_EXT_ENABLE $PHP_EXT_ENABLE"
         
         if [[ -n "$DOCKERFILE_CONTENTS" ]]; then
@@ -84,10 +103,22 @@ do
 done
 
 # Deduplicate and sort lists
-ALL_SYS_DEPS=$(echo "$ALL_SYS_DEPS" | xargs -n1 | sort -u | xargs)
 ALL_PHP_EXT_INSTALL=$(echo "$ALL_PHP_EXT_INSTALL" | xargs -n1 | sort -u | xargs)
 ALL_PECL_INSTALL=$(echo "$ALL_PECL_INSTALL" | xargs -n1 | sort -u | xargs)
+ALL_PIE_INSTALL=$(echo "$ALL_PIE_INSTALL" | xargs -n1 | sort -u | xargs)
+
+# PIE downloads extensions as zip archives (Debian lacks unzip; busybox's is
+# enough on Alpine) and warns without libtoolize.
+if [[ -n "$ALL_PIE_INSTALL" ]]; then
+    if [[ -n "$IS_APK" ]]; then
+        ALL_SYS_DEPS="$ALL_SYS_DEPS libtool"
+    else
+        ALL_SYS_DEPS="$ALL_SYS_DEPS libtool unzip"
+    fi
+fi
 ALL_PHP_EXT_ENABLE=$(echo "$ALL_PHP_EXT_ENABLE" | xargs -n1 | sort -u | xargs)
+
+ALL_SYS_DEPS=$(echo "$ALL_SYS_DEPS" | xargs -n1 | sort -u | xargs)
 
 # Output Dockerfile
 echo "FROM php:$BASE"
@@ -116,6 +147,14 @@ fi
 if [[ -n "$ALL_PECL_INSTALL" ]]; then
     echo -e "\n# Install PECL extensions"
     echo "RUN pecl install $ALL_PECL_INSTALL"
+fi
+
+# 3b. PIE Extensions (enabling is left to step 4)
+if [[ -n "$ALL_PIE_INSTALL" ]]; then
+    echo -e "\n# Install PECL extensions with PIE"
+    echo "COPY --from=ghcr.io/php/pie:1-bin /pie /usr/bin/pie"
+    echo "RUN pie install -n --skip-enable-extension $ALL_PIE_INSTALL \\"
+    echo "    && rm -rf /root/.pie /root/.composer/cache"
 fi
 
 # 4. Enable Extensions

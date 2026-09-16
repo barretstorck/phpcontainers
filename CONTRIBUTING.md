@@ -20,7 +20,8 @@ The `config` file is a sourced shell script that can define the following variab
 - `APT_DEPS`: Space-separated list of Debian/Ubuntu packages (e.g., `libpng-dev`).
 - `APK_DEPS`: Space-separated list of Alpine packages (e.g., `libpng-dev`).
 - `PHP_EXT_INSTALL`: List of extensions to install via `docker-php-ext-install`.
-- `PECL_INSTALL`: List of extensions to install via `pecl install`.
+- `PECL_INSTALL`: List of extensions to install via `pecl install` (PHP 8.4 only; removed once 8.4 leaves active support on 2026-12-31).
+- `PIE_INSTALL`: Packagist names of the same extensions, installed via [PIE](https://github.com/php/pie) on PHP 8.5+ and version-less tags (e.g. `pecl/yaml`). Required whenever `PECL_INSTALL` is set.
 - `PHP_EXT_ENABLE`: List of extensions to enable via `docker-php-ext-enable`.
 - `DOCKERFILE_CONTENTS`: Custom Dockerfile commands (e.g., `COPY`, `RUN ...`).
 
@@ -40,6 +41,7 @@ fi
 APT_DEPS="libyaml-dev"
 APK_DEPS="yaml-dev"
 PECL_INSTALL="yaml"
+PIE_INSTALL="pecl/yaml"
 PHP_EXT_ENABLE="yaml"
 ```
 
