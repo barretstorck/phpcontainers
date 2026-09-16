@@ -26,6 +26,15 @@ The `config` file is a sourced shell script that can define the following variab
 
 You can use the `IS_APK` variable to check if the target is Alpine (non-empty) or Debian (empty).
 
+For version-dependent behavior, `PHP_VERSION` holds the base image's `major.minor` version (e.g. `8.5`), or is empty for version-less tags such as `cli`, which track the newest PHP. `php_version_lt <major.minor>` is true when the base image is older than the given version.
+
+#### Example: `extensions/opcache/config`
+```bash
+if [[ -n "$PHP_VERSION" ]] && php_version_lt 8.5; then
+    PHP_EXT_INSTALL="opcache"
+fi
+```
+
 #### Example: `extensions/yaml/config`
 ```bash
 APT_DEPS="libyaml-dev"
@@ -46,14 +55,14 @@ PHP_EXT_INSTALL="gd"
 Before submitting a pull request, verify that your Dockerfile generates correctly:
 
 ```shell
-./bin/builddockerfile 8.4-fpm <your-extension>
+./bin/builddockerfile 8.5-fpm <your-extension>
 ```
 
 Then, build the container and verify the extension is loaded:
 
 ```shell
-make build PHP=8.4-fpm EXTENSIONS="<your-extension>"
-docker run --rm php:8.4-fpm-<your-extension> php -m | grep <your-extension>
+make build PHP=8.5-fpm EXTENSIONS="<your-extension>"
+docker run --rm php:8.5-fpm-<your-extension> php -m | grep <your-extension>
 ```
 
 ## Pull Request Process

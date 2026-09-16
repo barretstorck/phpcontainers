@@ -1,0 +1,23 @@
+#!/bin/bash
+# Print the PHP major.minor version of an official php base image tag.
+#
+# Usage: php-version <tag>        e.g. php-version 8.5-cli-alpine   -> 8.5
+#                                      php-version 8.6-rc-fpm       -> 8.6
+#                                      php-version 8.5.10-apache    -> 8.5
+#
+# Prints nothing for tags that carry no version (cli, fpm-alpine, latest, ...).
+# Those track upstream's newest release, so callers should treat an empty
+# result as "newest" rather than guessing a number.
+set -e
+
+if [[ -z "$1" || "$1" == "--help" || "$1" == "-h" ]]
+then
+    echo "Usage: $0 <php-base-tag>"
+    echo "Example: $0 8.5-fpm"
+    exit 0
+fi
+
+if [[ "$1" =~ ^([0-9]+)\.([0-9]+) ]]
+then
+    echo "${BASH_REMATCH[1]}.${BASH_REMATCH[2]}"
+fi

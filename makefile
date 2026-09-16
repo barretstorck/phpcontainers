@@ -1,6 +1,6 @@
 MKFILE_DIR = $(shell echo $(dir $(abspath $(firstword $(MAKEFILE_LIST)))) | sed -e 's,/$$,,')
 
-PHP=8.4-cli
+PHP=8.5-cli
 EXTENSIONS=
 NAME=php
 TAG = $(shell $(MKFILE_DIR)/bin/generate-tag ${PHP} ${EXTENSIONS})

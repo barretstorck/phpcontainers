@@ -3,7 +3,7 @@
 if [[ -z "$1" || "$1" == "--help" || "$1" == "-h" ]]
 then
     echo "Usage: $0 <php-base-tag> [extension1 extension2 ...]"
-    echo "Example: $0 8.4-fpm bcmath zip"
+    echo "Example: $0 8.5-fpm bcmath zip"
     exit 0
 fi
 
@@ -22,6 +22,14 @@ REQUESTED_EXTENSIONS=$(echo "${@:2}" | xargs -n1 | sort -u | xargs)
 # Get the script's directory.
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 EXTENSIONS_DIR="$SCRIPT_DIR/../extensions"
+
+# Version-dependent extension configs can read these.
+PHP_VERSION=$("$SCRIPT_DIR/php-version" "$BASE")
+
+# True when the base image's PHP is older than the given major.minor version.
+php_version_lt() {
+    [[ "$PHP_VERSION" != "$1" && "$(printf '%s\n' "$PHP_VERSION" "$1" | sort -V | head -n1)" == "$PHP_VERSION" ]]
+}
 
 # Aggregation variables
 ALL_SYS_DEPS=""
