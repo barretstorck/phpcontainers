@@ -44,7 +44,7 @@ jobs:
       digests: ${{ steps.resolve.outputs.digests }}
       any: ${{ steps.resolve.outputs.any }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
       - name: Resolve base image digests
         id: resolve
@@ -170,7 +170,7 @@ jobs:
             echo "php:${{ matrix.php }} is unchanged upstream; skipping this build."
           fi
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         if: steps.gate.outputs.build == 'true'
 
       - name: Generate output tag
@@ -189,11 +189,11 @@ jobs:
 
       - name: Set up Buildx
         if: steps.gate.outputs.build == 'true'
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
 
       - name: Login to GHCR
         if: steps.gate.outputs.build == 'true'
-        uses: docker/login-action@v3
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -201,7 +201,7 @@ jobs:
 
       - name: Build and push container
         if: steps.gate.outputs.build == 'true'
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@ca052bb54ab0790a636c9b5f226502c73d547a25 # v5.4.0
         with:
           provenance: false
           context: .
@@ -225,7 +225,7 @@ jobs:
   # with no commit activity. This job pushes a build receipt when the recorded
   # base digests change or main is getting stale, which resets that clock.
   #
-  # The "Protect main" ruleset requires a pull request, and GITHUB_TOKEN cannot
+  # The "Require PRs on main" ruleset blocks direct pushes, and GITHUB_TOKEN cannot
   # bypass it, so the push uses a write deploy key (KEEPALIVE_DEPLOY_KEY) that
   # the ruleset lists as a bypass actor. Unlike GITHUB_TOKEN, deploy key pushes
   # DO trigger workflows; the [skip ci] in the commit message is what prevents a
@@ -238,7 +238,7 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           ref: main
           ssh-key: ${{ secrets.KEEPALIVE_DEPLOY_KEY }}
