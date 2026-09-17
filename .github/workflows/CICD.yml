@@ -222,20 +222,26 @@ jobs:
           done
 
   # GitHub stops scheduling cron workflows in public repositories after 60 days
-  # with no commit activity. This job pushes a build receipt after every
-  # scheduled/manual run, which resets that clock. Pushes made with GITHUB_TOKEN
-  # do not trigger workflows, so this cannot cause a build loop.
+  # with no commit activity. This job pushes a build receipt when the recorded
+  # base digests change or main is getting stale, which resets that clock.
+  #
+  # The "Protect main" ruleset requires a pull request, and GITHUB_TOKEN cannot
+  # bypass it, so the push uses a write deploy key (KEEPALIVE_DEPLOY_KEY) that
+  # the ruleset lists as a bypass actor. Unlike GITHUB_TOKEN, deploy key pushes
+  # DO trigger workflows; the [skip ci] in the commit message is what prevents a
+  # build loop, so keep it.
   keepalive:
     name: Keep schedule alive
     needs: [resolve_bases, build_php_containers]
     if: always() && github.event_name != 'push'
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
     steps:
       - uses: actions/checkout@v4
         with:
           ref: main
+          ssh-key: ${{ secrets.KEEPALIVE_DEPLOY_KEY }}
 
       # Only advance the recorded digests when every image built cleanly. If any
       # build failed we leave the old digests in place so the next run retries
