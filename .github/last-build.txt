@@ -1,5 +1,5 @@
-last_run_utc:   2026-10-07T11:52:06Z
+last_run_utc:   2026-10-09T11:58:02Z
 trigger:        schedule
 build_result:   success
-bases_changed:  ["8.5-apache","8.5-cli"]
-run_url:        https://github.com/barretstorck/phpcontainers/actions/runs/37616405686
+bases_changed:  ["8.5-fpm"]
+run_url:        https://github.com/barretstorck/phpcontainers/actions/runs/37926523075
